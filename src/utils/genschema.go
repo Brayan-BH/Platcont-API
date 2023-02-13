@@ -16,7 +16,7 @@ import (
 
 func main() {
 	basePath := "./tmp/"
-	table := "users"
+	table := "clients"
 	resultTables := consultar("SELECT table_name FROM Information_Schema.TABLES WHERE table_name='" + table + "'")
 	// resultTables := consultar("select * from requ_organization")
 	// fmt.Println("resultTables: ", resultTables)
@@ -68,7 +68,7 @@ func main() {
 			modulo = ""
 			table = temp_table_name[0]
 		}
-		codigo_struct += "import \"taxi-platcont-go/src/models\" \n"
+		codigo_struct += "import \"server-go/src/models\" \n"
 		codigo_struct += fmt.Sprintf("func %s_GetSchema() ([]models.Base, string) {\n", table)
 		codigo_struct += fmt.Sprintf("\tvar %s []models.Base\n", table)
 		codigo_struct += fmt.Sprintf("\ttableName := \"%s_\" + \"%s\"\n", modulo, table)
@@ -113,7 +113,7 @@ func main() {
 				codigo_struct += "\t\tUint: models.Uints{\n"
 				codigo_struct += "\t\t\tMax: 10,\n"
 				codigo_struct += "\t\t},\n"
-			} else if column["udt_name"] == "float8" || column["udt_name"] == "real" {
+			} else if column["udt_name"] == "numeric" || column["udt_name"] == "real" {
 				codigo_struct += fmt.Sprintf("\t\tType:\"%s\",\n", "float64")
 				codigo_struct += "\t\tFloat: models.Floats{\n"
 				codigo_struct += "\t\t},\n"
@@ -184,13 +184,13 @@ func consultar(query string) []map[string]interface{} {
 func Connection() *sql.DB {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("error configuración de variables de entorno")
+		log.Fatal("error configuraciÃ³n de variables de entorno")
 	}
 	server := os.Getenv("ENV_DDBB_SERVER")
 	user := os.Getenv("ENV_DDBB_USER")
 	password := os.Getenv("ENV_DDBB_PASSWORD")
 	port := os.Getenv("ENV_DDBB_PORT")
-	database := "new_capital"
+	database := "Platcont"
 	// fmt.Println("database: ", database)
 	connection_string := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", server, port, user, password, database)
 	db, err := sql.Open("postgres", connection_string)

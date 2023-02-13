@@ -1,23 +1,22 @@
-package sqlquery
+package orm
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
-	"platcont/src/library/cryptoAes"
-	"platcont/src/library/database"
-	"platcont/src/library/date"
-	"platcont/src/models"
+	"platcont/src/auth"
+	"platcont/src/database/connection"
+	"platcont/src/database/models"
+	"platcont/src/libraries/cryptoAes"
+	"platcont/src/libraries/date"
 	"reflect"
 	"strconv"
 	"strings"
-	"unicode"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-type SqlLibExec struct {
+type SqlExec struct {
 	Ob     []map[string]interface{} //datos para observación
 	Data   []map[string]interface{} //datos para insertar o actualizar o eliminar
 	Query  []map[string]interface{}
@@ -29,9 +28,9 @@ type SqlLibExec struct {
  * Reception datos para crear query para insertar, actualizar o eliminar
  * datos {[]map[string]interface{}}: datos a insertar, actualizar o eliminar
  * name {string}: nombre de la tabla
- * returns {*SqlLibExec} retorna SqlLibExec struct
+ * returns {*SqlExec} retorna SqlExec struct
  */
-func (sq *SqlLibExec) New(datos []map[string]interface{}, name string) *SqlLibExec {
+func (sq *SqlExec) New(datos []map[string]interface{}, name string) *SqlExec {
 	sq.Ob = datos
 	sq.Table = name
 	return sq
@@ -42,13 +41,14 @@ func (sq *SqlLibExec) New(datos []map[string]interface{}, name string) *SqlLibEx
  * schema {[]models.Base}: modelo de la tabla
  * returns {error}: retorna errores ocurridos en la validación
  */
-func (sq *SqlLibExec) Insert(schema []models.Base) error {
+func (sq *SqlExec) Insert(schema []models.Base) error {
 	data := sq.Ob
 	length := len(data)
 
 	if length > 0 {
 		var sqlExec = make([]map[string]interface{}, 0)
 		var data_insert []map[string]interface{}
+
 		for _, item := range data {
 			preArray, err := _checkInsertSchema(schema, item)
 			if err == nil {
@@ -60,15 +60,15 @@ func (sq *SqlLibExec) Insert(schema []models.Base) error {
 				var p uint64
 				length_newMap := len(preArray)
 				var valuesExec []interface{}
-
+				char := "$"
 				for k, v := range preArray {
 					p++
 					if i+1 < length_newMap {
 						sqlPreparateInsert += k + ", "
-						sqlPreparateValues += "@p" + strconv.FormatUint(p, 10) + ", "
+						sqlPreparateValues += char + strconv.FormatUint(p, 10) + ", "
 					} else {
 						sqlPreparateInsert += k
-						sqlPreparateValues += "@p" + strconv.FormatUint(p, 10)
+						sqlPreparateValues += char + strconv.FormatUint(p, 10)
 					}
 					valuesExec = append(valuesExec, v)
 					i++
@@ -97,7 +97,7 @@ func (sq *SqlLibExec) Insert(schema []models.Base) error {
  * schema {[]models.Base}: modelo de la tabla
  * returns {error}: retorna errores ocurridos en la validación
  */
-func (sq *SqlLibExec) Update(schema []models.Base) error {
+func (sq *SqlExec) Update(schema []models.Base) error {
 	data := sq.Ob
 	length := len(data)
 
@@ -134,14 +134,14 @@ func (sq *SqlLibExec) Update(schema []models.Base) error {
 			var p uint64
 			length_newMap := len(preArray)
 			var valuesExec []interface{}
-
+			char := "$"
 			for k, v := range preArray {
 				p++
 
 				if i+1 < length_newMap {
-					sqlPreparateUpdate += k + "= @p" + strconv.FormatUint(p, 10) + ", "
+					sqlPreparateUpdate += k + "= " + char + strconv.FormatUint(p, 10) + ", "
 				} else {
-					sqlPreparateUpdate += k + "= @p" + strconv.FormatUint(p, 10)
+					sqlPreparateUpdate += k + "= " + char + strconv.FormatUint(p, 10)
 				}
 				valuesExec = append(valuesExec, v)
 
@@ -155,10 +155,10 @@ func (sq *SqlLibExec) Update(schema []models.Base) error {
 					p++
 					if i+1 < length_newMapWhere {
 						// sqlWherePreparateUpdate += fmt.Sprintf("%s = '%s' AND ", ke, va)
-						sqlWherePreparateUpdate += k + " = @p" + strconv.FormatUint(p, 10) + " AND "
+						sqlWherePreparateUpdate += k + " = " + char + strconv.FormatUint(p, 10) + " AND "
 					} else {
 						//sqlWherePreparateUpdate += fmt.Sprintf("%s = '%s'", ke, va)
-						sqlWherePreparateUpdate += k + " = @p" + strconv.FormatUint(p, 10)
+						sqlWherePreparateUpdate += k + " = " + char + strconv.FormatUint(p, 10)
 					}
 					valuesExec = append(valuesExec, v)
 					i++
@@ -167,7 +167,7 @@ func (sq *SqlLibExec) Update(schema []models.Base) error {
 					sqlWherePreparateUpdate = "WHERE " + sqlWherePreparateUpdate
 				}
 			}
-
+			// fmt.Println(sqlPreparateUpdate)
 			sqlPreparate := fmt.Sprintf("UPDATE %s SET %s %s", sq.Table, sqlPreparateUpdate, sqlWherePreparateUpdate)
 			lineSqlExec["sqlPreparate"] = sqlPreparate
 			lineSqlExec["valuesExec"] = valuesExec
@@ -188,7 +188,7 @@ func (sq *SqlLibExec) Update(schema []models.Base) error {
  * schema {[]models.Base}: modelo de la tabla
  * returns {error}: retorna errores ocurridos en la validación
  */
-func (sq *SqlLibExec) Delete(schema []models.Base) error {
+func (sq *SqlExec) Delete(schema []models.Base) error {
 	data := sq.Ob
 	length := len(data)
 
@@ -212,24 +212,24 @@ func (sq *SqlLibExec) Delete(schema []models.Base) error {
 			if length_newMap > 0 {
 				sqlWherePreparateDelete += " WHERE "
 			}
+			char := "$"
 			for k, v := range preArray {
 				p++
 				if i+1 < length_newMap {
 					// sqlWherePreparateUpdate += fmt.Sprintf("%s = '%s' AND ", ke, va)
-					sqlWherePreparateDelete += k + " = @p" + strconv.FormatUint(p, 10) + " AND "
+					sqlWherePreparateDelete += k + " = " + char + strconv.FormatUint(p, 10) + " AND "
 				} else {
 					//sqlWherePreparateUpdate += fmt.Sprintf("%s = '%s'", ke, va)
-					sqlWherePreparateDelete += k + " = @p" + strconv.FormatUint(p, 10)
+					sqlWherePreparateDelete += k + " = " + char + strconv.FormatUint(p, 10)
 				}
 				valuesExec = append(valuesExec, v)
 				i++
 			}
 
-			sqlPreparate := fmt.Sprintf("DELETE %s %s", sq.Table, sqlWherePreparateDelete)
+			sqlPreparate := fmt.Sprintf("DELETE FROM %s %s", sq.Table, sqlWherePreparateDelete)
 			lineSqlExec["sqlPreparate"] = sqlPreparate
 			lineSqlExec["valuesExec"] = valuesExec
 			sqlExec = append(sqlExec, lineSqlExec)
-
 		}
 		sq.Query = sqlExec
 		sq.Data = data_delete
@@ -244,63 +244,38 @@ func (sq *SqlLibExec) Delete(schema []models.Base) error {
  * Ejecuta el query
  * returns {error}: retorna errores ocurridos durante la ejecución
  */
-func (sq *SqlLibExec) Exec() error {
-	cnn := database.Connection()
+func (sq *SqlExec) Exec(params ...bool) error {
+	cnn := connection.Connection()
 	ctx := context.Background()
 	err_cnn := cnn.PingContext(ctx)
 	if err_cnn != nil {
 		return errors.New(fmt.Sprint("Error Sql PING: ", err_cnn))
 	}
-	if sq.action == "INSERT" {
-		dataExec := sq.Query
-		for _, item := range dataExec {
-			sqlPre := item["sqlPreparate"].(string)
-			stmt, err_prepare := cnn.Prepare(sqlPre)
-			if err_prepare != nil {
-				return errors.New(fmt.Sprint("Error Sql PREPARE: ", err_prepare))
-			}
-			defer stmt.Close()
-			valuesExec := item["valuesExec"].([]interface{})
-			_, err_exec := stmt.Exec(valuesExec...)
-			if err_exec != nil {
-				return errors.New(fmt.Sprint("Error Sql INSERT: ", err_exec))
-			}
-		}
-		return nil
-	} else if sq.action == "UPDATE" {
-		dataExec := sq.Query
-		for _, item := range dataExec {
-			sqlPre := item["sqlPreparate"].(string)
-			stmt, err_prepare := cnn.Prepare(sqlPre)
-			if err_prepare != nil {
-				return errors.New(fmt.Sprint("Error Sql PREPARE: ", err_prepare))
-			}
-			defer stmt.Close()
-			valuesExec := item["valuesExec"].([]interface{})
-			_, err_exec := stmt.Exec(valuesExec...)
-			if err_exec != nil {
-				return errors.New(fmt.Sprint("Error Sql UPDATE: ", err_exec))
-			}
-		}
-		return nil
-	} else if sq.action == "DELETE" {
-		dataExec := sq.Query
-		for _, item := range dataExec {
-			sqlPre := item["sqlPreparate"].(string)
-			stmt, err_prepare := cnn.Prepare(sqlPre)
-			if err_prepare != nil {
-				return errors.New(fmt.Sprint("Error Sql PREPARE: ", err_prepare))
-			}
-			defer stmt.Close()
-			valuesExec := item["valuesExec"].([]interface{})
-			_, err_exec := stmt.Exec(valuesExec...)
-			if err_exec != nil {
-				return errors.New(fmt.Sprint("Error Sql DELETE: ", err_exec))
-			}
-		}
-		return nil
+	cross := false
+	if len(params) == 1 {
+		cross = params[0]
 	}
-	return errors.New("No existe acción para ejecutar")
+	dataExec := sq.Query
+	defer cnn.Close()
+	for _, item := range dataExec {
+		sqlPre := item["sqlPreparate"].(string)
+		if cross {
+			if sq.action == "UPDATE" {
+				sqlPre = Query_Cross_Update(sqlPre)
+			}
+		}
+		// fmt.Println("PREPARED: ", sqlPre)
+		stmt, err_prepare := cnn.Prepare(sqlPre)
+		if err_prepare != nil {
+			return errors.New(fmt.Sprint("Error Sql PREPARE: ", err_prepare))
+		}
+		valuesExec := item["valuesExec"].([]interface{})
+		_, err_exec := stmt.Exec(valuesExec...)
+		if err_exec != nil {
+			return errors.New(fmt.Sprintf("Error Sql %s: %s", sq.action, err_exec.Error()))
+		}
+	}
+	return nil
 }
 
 func _checkInsertSchema(schema []models.Base, tabla_map map[string]interface{}) (map[string]interface{}, error) {
@@ -312,84 +287,34 @@ func _checkInsertSchema(schema []models.Base, tabla_map map[string]interface{}) 
 	data := make(map[string]interface{})
 
 	for _, item := range schema {
+		// fmt.Println(item.Name, tabla_map[item.Name])
 		isNil := tabla_map[item.Name] == nil
 		defaultIsNil := item.Default == nil
 		if !isNil {
 			value := tabla_map[item.Name]
-			if item.Type == "string" {
-				if item.Type == reflect.TypeOf(value).String() {
-					value_verify, err := caseString(value.(string), item.Strings)
-					if err == nil {
-						data[item.Name] = value_verify
-					} else {
-						err_cont++
-						error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s", err_cont, item.Description, err.Error())
-					}
-				} else {
-					err_cont++
-					error += fmt.Sprintf("%d.- El campo %s no es del tipo de dato que se esperaba -S", err_cont, item.Description)
-				}
+			new_value, err := checkDataTypes(item.Type, value)
+			if err != nil {
+				err_cont++
+				error += fmt.Sprintf("%d.- El campo %s %s", err_cont, item.Description, err.Error())
+			}
+			var val interface{}
+			switch item.Type {
+			case "string":
+				val, err = caseString(new_value.(string), item.Strings)
+			case "float64":
+				val, err = caseFloat(new_value.(float64), item.Float)
+			case "uint64":
+				val, err = caseUint(new_value.(uint64), item.Uint)
+			case "int64":
+				val, err = caseInt(new_value.(int64), item.Int)
+			default:
+				val, err = nil, errors.New("tipo de dato no asignado")
+			}
+			if err == nil {
+				data[item.Name] = val
 			} else {
-				if item.Type != reflect.TypeOf(value).String() {
-					val, err := convertStringToType(item.Type, value)
-					if err == nil {
-						value = val
-						if item.Type == "float64" {
-							val, err := caseFloat(value.(float64), item.Float)
-							if err == nil {
-								data[item.Name] = val
-							} else {
-								err_cont++
-								error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-							}
-						} else if item.Type == "uint64" {
-							val, err := caseUint(value.(uint64), item.Uint)
-							if err == nil {
-								data[item.Name] = val
-							} else {
-								err_cont++
-								error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-							}
-						} else if item.Type == "int64" {
-							val, err := caseInt(value.(int64), item.Int)
-							if err == nil {
-								data[item.Name] = val
-							} else {
-								err_cont++
-								error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-							}
-						}
-					} else {
-						err_cont++
-						error += fmt.Sprintf("%d.- El campo %s no es del tipo de dato que se esperaba", err_cont, item.Description)
-					}
-				} else {
-					if item.Type == "float64" {
-						val, err := caseFloat(value.(float64), item.Float)
-						if err == nil {
-							data[item.Name] = val
-						} else {
-							err_cont++
-							error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-						}
-					} else if item.Type == "uint64" {
-						val, err := caseUint(value.(uint64), item.Uint)
-						if err == nil {
-							data[item.Name] = val
-						} else {
-							err_cont++
-							error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-						}
-					} else if item.Type == "int64" {
-						val, err := caseInt(value.(int64), item.Int)
-						if err == nil {
-							data[item.Name] = val
-						} else {
-							err_cont++
-							error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-						}
-					}
-				}
+				err_cont++
+				error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
 			}
 		} else {
 			if !defaultIsNil {
@@ -419,87 +344,36 @@ func _checkUpdate(schema []models.Base, tabla_map map[string]interface{}) (map[s
 		if !isNil {
 			if item.Update {
 				value := tabla_map[item.Name]
-				if item.Type == "string" {
-					if item.Type == reflect.TypeOf(value).String() {
-						if value.(string) != "" {
-							value_verify, err := caseString(value.(string), item.Strings)
-							if err == nil {
-								data[item.Name] = value_verify
-							} else {
-								err_cont++
-								error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s", err_cont, item.Description, err.Error())
-							}
-						} else {
-							if !item.Empty {
-								err_cont++
-								error += fmt.Sprintf("%d.- El campo %s no puede estar vació\n", err_cont, item.Description)
-							}
-						}
-					} else {
-						err_cont++
-						error += fmt.Sprintf("%d.- El campo %s no es del tipo de dato que se esperaba -S", err_cont, item.Description)
-					}
-				} else {
-					if item.Type != reflect.TypeOf(value).String() {
-						val, err := convertStringToType(item.Type, value)
-						if err == nil {
-							value = val
-							if item.Type == "float64" {
-								val, err := caseFloat(value.(float64), item.Float)
-								if err == nil {
-									data[item.Name] = val
-								} else {
-									err_cont++
-									error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-								}
-							} else if item.Type == "uint64" {
-								val, err := caseUint(value.(uint64), item.Uint)
-								if err == nil {
-									data[item.Name] = val
-								} else {
-									err_cont++
-									error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-								}
-							} else if item.Type == "int64" {
-								val, err := caseInt(value.(int64), item.Int)
-								if err == nil {
-									data[item.Name] = val
-								} else {
-									err_cont++
-									error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-								}
-							}
-						} else {
+				new_value, err := checkDataTypes(item.Type, value)
+				if err != nil {
+					err_cont++
+					error += fmt.Sprintf("%d.- El campo %s %s", err_cont, item.Description, err.Error())
+				}
+				var val interface{}
+				switch item.Type {
+				case "string":
+					if new_value.(string) == "" {
+						if !item.Empty {
 							err_cont++
-							error += fmt.Sprintf("%d.- El campo %s no es del tipo de dato que se esperaba", err_cont, item.Description)
+							error += fmt.Sprintf("%d.- El campo %s no puede estar vació\n", err_cont, item.Description)
 						}
 					} else {
-						if item.Type == "float64" {
-							val, err := caseFloat(value.(float64), item.Float)
-							if err == nil {
-								data[item.Name] = val
-							} else {
-								err_cont++
-								error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-							}
-						} else if item.Type == "uint64" {
-							val, err := caseUint(value.(uint64), item.Uint)
-							if err == nil {
-								data[item.Name] = val
-							} else {
-								err_cont++
-								error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-							}
-						} else if item.Type == "int64" {
-							val, err := caseInt(value.(int64), item.Int)
-							if err == nil {
-								data[item.Name] = val
-							} else {
-								err_cont++
-								error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
-							}
-						}
+						val, err = caseString(new_value.(string), item.Strings)
 					}
+				case "float64":
+					val, err = caseFloat(new_value.(float64), item.Float)
+				case "uint64":
+					val, err = caseUint(new_value.(uint64), item.Uint)
+				case "int64":
+					val, err = caseInt(new_value.(int64), item.Int)
+				default:
+					val, err = nil, errors.New("tipo de dato no asignado")
+				}
+				if err == nil {
+					data[item.Name] = val
+				} else {
+					err_cont++
+					error += fmt.Sprintf("%d.- Se encontró fallas al validar el campo %s \n %s\n", err_cont, item.Description, err.Error())
 				}
 			} else {
 				err_cont++
@@ -553,14 +427,13 @@ func caseString(value string, schema models.Strings) (string, error) {
 	err_ := ""
 	value = strings.TrimSpace(value)
 	if !schema.Expr.MatchString(value) {
-		err_ += ("- No Cumple con las características\n")
+		err_ += "- No Cumple con las características\n"
 		return "", errors.New(err_)
 	} else {
 		if schema.Date {
 			err := date.CheckDate(value)
 			if err != nil {
 				err_ += fmt.Sprintf("- %s\n", err.Error())
-
 				return "", errors.New(err_)
 			} else {
 				return value, nil
@@ -572,8 +445,8 @@ func caseString(value string, schema models.Strings) (string, error) {
 				return value, nil
 			} else {
 				if schema.Cifrar {
-					hash, _ := cryptoAes.AesEncrypt([]byte(value), []byte("supervisor02??"))
-					value = base64.StdEncoding.EncodeToString(hash)
+					hash, _ := cryptoAes.AesEncrypt_PHP([]byte(value), auth.GetKey_PrivateCrypto())
+					value = hash
 					return value, nil
 				} else {
 					if schema.Min > 0 {
@@ -590,7 +463,9 @@ func caseString(value string, schema models.Strings) (string, error) {
 					}
 					if err_ == "" {
 						if schema.UpperCase {
-							value = strings.ToUpperSpecial(unicode.TurkishCase, value)
+							value = strings.ToUpper(value)
+						} else if schema.LowerCase {
+							value = strings.ToLower(value)
 						}
 						return value, nil
 					} else {
@@ -607,13 +482,13 @@ func caseFloat(value float64, schema models.Floats) (float64, error) {
 	error := ""
 	err_cont := 0
 	if schema.Menor != 0 {
-		if value <= schema.Menor {
+		if value < schema.Menor {
 			err_cont++
 			error += fmt.Sprintf("- No puede se menor a %f", schema.Menor)
 		}
 	}
 	if schema.Mayor != 0 {
-		if value >= schema.Mayor {
+		if value > schema.Mayor {
 			err_cont++
 			error += fmt.Sprintf("- No puede se mayor a %f", schema.Mayor)
 		}
@@ -644,13 +519,13 @@ func caseInt(value int64, schema models.Ints) (int64, error) {
 		}
 	}
 	if schema.Min != 0 {
-		if value <= schema.Min {
+		if value < schema.Min {
 			err_cont++
 			error += fmt.Sprintf("- No puede se menor a %d", schema.Min)
 		}
 	}
 	if schema.Max != 0 {
-		if value >= schema.Max {
+		if value > schema.Max {
 			err_cont++
 			error += fmt.Sprintf("- No puede se mayor a %d", schema.Max)
 		}
@@ -664,7 +539,7 @@ func caseInt(value int64, schema models.Ints) (int64, error) {
 }
 func caseUint(value uint64, schema models.Uints) (uint64, error) {
 	if schema.Max > 0 {
-		if value >= schema.Max {
+		if value > schema.Max {
 			error := fmt.Sprintf("- No esta en el rango permitido")
 			return 0, errors.New(error)
 		}
@@ -684,6 +559,76 @@ func convertStringToType(types string, value_undefined interface{}) (val interfa
 	case "float64":
 		val, err = strconv.ParseFloat(value, 64)
 		return
+	default:
+		return nil, errors.New("No se puede convertir el tipo de dato")
+	}
+}
+
+func checkDataTypes(types string, values interface{}) (interface{}, error) {
+	type_value := reflect.TypeOf(values).String()
+	switch types {
+	case "string":
+		if types == type_value {
+			return values, nil
+		}
+		return nil, errors.New("tipo de dato incorrecto")
+	case "float64":
+		if types == type_value {
+			return values, nil
+		}
+
+		if type_value == "string" {
+			new_value, err := convertStringToType("float64", values)
+			if err != nil {
+				return nil, err
+			}
+			return new_value, nil
+		} else if type_value == "int64" {
+			new_value := float64(values.(int64))
+			return new_value, nil
+		}
+
+		return nil, errors.New("tipo de dato incorrecto")
+	case "uint64":
+		if types == type_value {
+			return values, nil
+		}
+
+		if type_value == "float64" {
+			new_value := uint64(values.(float64))
+			return new_value, nil
+		} else if type_value == "string" {
+			new_value, err := convertStringToType("uint64", values)
+			if err != nil {
+				return nil, err
+			}
+			return new_value, nil
+		} else if type_value == "int64" {
+			new_value := uint64(values.(int64))
+			return new_value, nil
+		}
+
+		return nil, errors.New("tipo de dato incorrecto")
+	case "int64":
+		if types == type_value {
+			return values, nil
+		}
+
+		if type_value == "float64" {
+			new_value := int64(values.(float64))
+			return new_value, nil
+		} else if type_value == "string" {
+			new_value, err := convertStringToType("int64", values)
+			if err != nil {
+				return nil, err
+			}
+			return new_value, nil
+		} else if type_value == "uint64" {
+			new_value := int64(values.(uint64))
+			return new_value, nil
+		}
+
+		return nil, errors.New("tipo de dato incorrecto")
 	default:
 		return nil, errors.New("No se puede convertir el tipo de dato")
 	}

@@ -1,14 +1,23 @@
-package lib
+package library
 
 import (
 	"fmt"
+	"platcont/src/controller"
 	"reflect"
-	"strconv"
 	"strings"
 )
 
 //typeof
 //recibe un valor interface que no se reconoce su tipo y devuelve un string
+func GetSession_key(key string) interface{} {
+	data, err := controller.SessionMgr.GetSessionVal(controller.SessionID, key)
+	if !err {
+		fmt.Println("Error session ID:"+controller.SessionID+" key:("+key+"):", err)
+		fmt.Println("lista:", controller.SessionMgr.GetSessionIDList())
+		return ""
+	}
+	return data
+}
 func InterfaceToString(params ...interface{}) string {
 	typeValue := reflect.TypeOf(params[0]).String()
 	value := params[0]
@@ -32,16 +41,4 @@ func InterfaceToString(params ...interface{}) string {
 		valueReturn = fmt.Sprintf("%t", value)
 	}
 	return valueReturn
-}
-
-func BytesToFloat64(bytes []byte) float64 {
-
-	text := bytes // A decimal value represented as Latin-1 text
-
-	f, err := strconv.ParseFloat(string(text), 64)
-	if err != nil {
-		fmt.Print("Error Conv:", err)
-	}
-
-	return f
 }

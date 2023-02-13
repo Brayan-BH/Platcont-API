@@ -5,23 +5,37 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"platcont/src/controller"
+	"platcont/src/helper"
+	"platcont/src/middleware"
 	"platcont/src/routes"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	r := mux.NewRouter().StrictSlash(true)
-	r.HandleFunc("/", HomeHandler)
-	//Rutas de autentificacion
-	routes.RutasAuth(r)
-	fmt.Println("Server on port 5000")
-	log.Fatal(http.ListenAndServe(":5000", r))
+	controller.SessionMgr = helper.NewSessionMgr("cookie-token", 3600)
+	router := mux.NewRouter().StrictSlash(true)
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("error loading .env file")
+	}
+	middleware.EnableCORS(router)
+	router.HandleFunc("/", inits)
+	routes.RutasAuth(router)
+
+	fmt.Printf("server listening on port %s", os.Getenv("PORT"))
+	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), router))
 }
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "aplicattion/json")
-	data := map[string]interface{}{"api": "platcontApi", "version": 1.1}
+func inits(w http.ResponseWriter, r *http.Request) {
+
+	datos := map[string]string{"Api": "Platcont", "Version": "2.0.17", "Author": "Deybin Yoni Gil Perez"}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(data)
+	json.NewEncoder(w).Encode(datos)
+
 }

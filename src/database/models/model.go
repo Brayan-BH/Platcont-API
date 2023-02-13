@@ -1,6 +1,8 @@
 package models
 
-import "regexp"
+import (
+	"regexp"
+)
 
 type (
 	Floats struct {
@@ -11,8 +13,9 @@ type (
 	}
 	Strings struct {
 		UpperCase bool
-		Encriptar bool
-		Cifrar    bool
+		LowerCase bool
+		Encriptar bool //crea un hash de la cadena
+		Cifrar    bool //cifra la cadena
 		Date      bool
 		Expr      regexp.Regexp //:=> (I-U-D) ==> expresión regular que debe cumplir el valor que almacenara el campo
 		Min       int
@@ -43,9 +46,24 @@ type (
 	}
 )
 
+/** ANEXO Type
+String
+Float64
+Int64
+Int8
+Uint8
+Uint16
+*/
+
+type Regex interface {
+	Letras(start int8, end int16) *regexp.Regexp
+	Float() *regexp.Regexp
+}
+
 func Null() *regexp.Regexp {
 	return regexp.MustCompile(``)
 }
-func Number_DB() *regexp.Regexp {
+
+func Number() *regexp.Regexp {
 	return regexp.MustCompile(`[0-9]{0,}$`)
 }

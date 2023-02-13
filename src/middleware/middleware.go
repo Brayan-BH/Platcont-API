@@ -1,69 +1,52 @@
 package middleware
 
 import (
-	"encoding/json"
 	"net/http"
 	"platcont/src/controller"
-	"time"
+	"platcont/src/libraries/library"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/gorilla/mux"
 )
-
-type Jwtclaim struct {
-	User  string `json:"user"`
-	Email string `json:"email"`
-	jwt.StandardClaims
-}
 
 func Autentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := controller.NewResponseManager()
-		//recibir token
-		access_token := r.Header.Get("Access-Token")
-		if access_token == "" {
-			response.Msg = "Access token is missing"
-			response.StatusCode = 405
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
-			return
+
+		session := library.GetSession_key("login")
+		if session != nil {
+			if session.(bool) == true {
+				next.ServeHTTP(w, r)
+			} else {
+				response.Msg = "Debe Iniciar Session"
+				response.Status = "Error"
+				response.StatusCode = 401 //inautorizado
+				w.Header().Set("Content-Type", "Aplication-Json")
+				w.WriteHeader(http.StatusAccepted)
+			}
 		} else {
-
-			//ValidateToken
-			key_token := []byte("supervisor")
-			token, err := jwt.ParseWithClaims(access_token, &Jwtclaim{}, func(tk *jwt.Token) (interface{}, error) {
-				return key_token, nil
-			})
-
-			if err != nil {
-				response.Msg = "Error signing" + err.Error()
-				response.StatusCode = 300
-				response.Status = "Error"
-				w.WriteHeader(http.StatusUnauthorized)
-				json.NewEncoder(w).Encode(response)
-				return
-			}
-			claims, ok := token.Claims.(*Jwtclaim)
-			if !ok {
-				response.Msg = "Error signing"
-				response.StatusCode = 300
-				response.Status = "Error"
-				w.WriteHeader(http.StatusUnauthorized)
-				json.NewEncoder(w).Encode(response)
-				return
-			}
-
-			if claims.ExpiresAt < time.Now().Local().Unix() {
-				response.Msg = "Session Expired"
-				response.StatusCode = 300
-				response.Status = "Error"
-				w.WriteHeader(http.StatusUnauthorized)
-				json.NewEncoder(w).Encode(response)
-				return
-			}
-			// fmt.Print(Jwtclaim{})
-			//valida autenticacion json
-			next.ServeHTTP(w, r)
+			response.Msg = "Debe Iniciar Session"
+			response.Status = "Error"
+			response.StatusCode = 401 //inautorizado
+			w.Header().Set("Content-Type", "Aplication-Json")
+			w.WriteHeader(http.StatusUnauthorized)
 		}
 	})
+}
+
+func MiddlewareCors(next http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, req *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Auth-Date, Auth-Periodo, Access-Token")
+			next.ServeHTTP(w, req)
+		})
+}
+
+func EnableCORS(router *mux.Router) {
+	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+	}).Methods(http.MethodOptions)
+	router.Use(MiddlewareCors)
 }
