@@ -1,15 +1,18 @@
 package tables
 
-import "platcont/src/database/models"
+import (
+	"platcont/src/database/models"
 
-func users_GetSchema() ([]models.Base, string) {
+	"github.com/google/uuid"
+)
+
+func Users_GetSchema() ([]models.Base, string) {
 	var users []models.Base
-	tableName := "_" + "users"
+	tableName := "users"
 	users = append(users, models.Base{ //id
 		Name:        "id",
 		Description: "id",
-		Required:    true,
-		Update:      true,
+		Default:     uuid.New().String(),
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
@@ -23,9 +26,9 @@ func users_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       10.000000,
+			Min:       15,
 			Max:       100,
-			UpperCase: true,
+			LowerCase: true,
 		},
 	})
 	users = append(users, models.Base{ //password
@@ -36,9 +39,9 @@ func users_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       20.000000,
+			Min:       10,
 			Max:       200,
-			UpperCase: true,
+			LowerCase: true,
 		},
 	})
 	users = append(users, models.Base{ //password_admin
@@ -49,9 +52,9 @@ func users_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       20.000000,
+			Min:       10,
 			Max:       200,
-			UpperCase: true,
+			LowerCase: true,
 		},
 	})
 	return users, tableName

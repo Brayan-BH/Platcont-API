@@ -25,6 +25,7 @@ func main() {
 	middleware.EnableCORS(router)
 	router.HandleFunc("/", inits)
 	routes.RutasAuth(router)
+	routes.RutasClientes(router)
 
 	fmt.Printf("server listening on port %s", os.Getenv("PORT"))
 	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), router))
