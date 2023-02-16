@@ -6,14 +6,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func Clientproducts_GetSchema() ([]models.Base, string) {
+func clientproducts_GetSchema() ([]models.Base, string) {
 	var clientproducts []models.Base
-	tableName := "clientproducts"
+	tableName := "_" + "clientproducts"
 	clientproducts = append(clientproducts, models.Base{ //multi
 		Name:        "multi",
 		Description: "multi",
 		Required:    true,
-		Update:      true,
 		Type:        "uint64",
 		Uint: models.Uints{
 			Max: 10,
@@ -23,11 +22,10 @@ func Clientproducts_GetSchema() ([]models.Base, string) {
 		Name:        "host",
 		Description: "host",
 		Required:    true,
-		Update:      true,
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       10,
+			Min:       10.000000,
 			Max:       100,
 			UpperCase: true,
 		},
@@ -88,34 +86,26 @@ func Clientproducts_GetSchema() ([]models.Base, string) {
 		Name:        "date_facture",
 		Description: "date_facture",
 		Required:    true,
+		Update:      true,
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
 			Date: true,
 		},
 	})
-	clientproducts = append(clientproducts, models.Base{ //uid
-		Name:        "uid",
-		Description: "uid",
-		Default:     uuid.New().String(),
-		Required:    true,
-		Type:        "string",
-		Strings: models.Strings{
-			Expr: *models.Null(),
-		},
-	})
 	clientproducts = append(clientproducts, models.Base{ //id
 		Name:        "id",
 		Description: "id",
+		Required:    true,
+		Default:     uuid.New().String(),
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
 		},
 	})
-	clientproducts = append(clientproducts, models.Base{ //id_pago
-		Name:        "id_pago",
-		Description: "id_pago",
-		Important:   true,
+	clientproducts = append(clientproducts, models.Base{ //uid
+		Name:        "uid",
+		Description: "uid",
 		Required:    true,
 		Type:        "string",
 		Strings: models.Strings{

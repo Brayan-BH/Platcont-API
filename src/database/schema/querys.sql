@@ -1,13 +1,3 @@
-create database platcontApi 
-CREATE TABLE PagoPendiente(
-    id_pago char(36) PRIMARY KEY,
-    n_fact int,
-    n_period time default CURRENT_TIMESTAMP,
-    n_clie varchar(100),
-    l_detalle varchar(80),
-    s_impo decimal(10, 2)
-);
-
 CREATE TABLE Users (
     id varchar(36) NOT NULL PRIMARY KEY,
     email varchar(100) DEFAULT '' UNIQUE,
@@ -26,9 +16,9 @@ CREATE TABLE Clients (
     n_repr varchar(8) DEfAULT '',
     l_repr varchar(70) DEfAULT '',
     uid varchar(36) NOT NULL,
-    id_prod varchar(36) NOT NULL,
+    i_prod varchar(36) NOT NULL,
     FOREIGN KEY (uid) REFERENCES Users (id),
-    FOREIGN KEY (id_prod) REFERENCES ClientProducts (id)
+    FOREIGN KEY (i_prod) REFERENCES ClientProducts (id)
 );
 
 CREATE TABLE ClientProducts (
@@ -41,20 +31,7 @@ CREATE TABLE ClientProducts (
     multi int DEFAULT 0,
     -- 0 = single, 1 = multi empresa
     date_facture varchar(10) DEFAULT '',
-    uid varchar(36) NOT NULL,
-    id_pago varchar(36) NOT NULL,
-    FOREIGN KEY (uid) REFERENCES Users (id),
-    FOREIGN KEY (id_pago) REFERENCES PagoPendiente (id_pago)
-);
-
-CREATE TABLE ProductosDetalle (
-    id_detail varchar(36) NOT NULL PRIMARY KEY,
-    l_detalle varchar(100) NOT NULL,
-    s_impo decimal(10, 2),
-    id_fact varchar(36),
-    id_prod varchar(36),
-    FOREIGN KEY (id_fact) REFERENCES Facturas (id_fact),
-    FOREIGN KEY (id_prod) REFERENCES ClientProducts (id)
+    uid varchar(36) NOT NULL
 );
 
 CREATE TABLE Facturas (
@@ -64,8 +41,15 @@ CREATE TABLE Facturas (
     n_clie varchar(100) NOT NULL,
     l_detalle varchar(80) NOT NULL,
     s_impo decimal(10, 2),
+    k_stad int DEFAULT 0,
     id_clie varchar(36) NOT NULL,
-    id_prod varchar(36) NOT NULL,
     FOREIGN KEY (id_clie) REFERENCES Clients (id)
-    FOREIGN KEY (id_prod) REFERENCES ClientProducts (id)
+);
+
+CREATE TABLE ProductosDetalle (
+    id_detail varchar(36) NOT NULL PRIMARY KEY,
+    l_detalle varchar(100) NOT NULL,
+    s_impo decimal(10, 2),
+    id_fact varchar(36) NOT NULL,
+    FOREIGN KEY (id_fact) REFERENCES Facturas (id_fact)
 );

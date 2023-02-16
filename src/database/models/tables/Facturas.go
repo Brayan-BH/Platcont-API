@@ -6,25 +6,17 @@ import (
 	"github.com/google/uuid"
 )
 
-func Facturas_GetSchema() ([]models.Base, string) {
+func facturas_GetSchema() ([]models.Base, string) {
 	var facturas []models.Base
 	tableName := "facturas"
-	facturas = append(facturas, models.Base{ //s_impo
-		Name:        "s_impo",
-		Description: "s_impo",
+	facturas = append(facturas, models.Base{ //id_fact
+		Name:        "id_fact",
+		Description: "id_fact",
 		Required:    true,
-		Update:      true,
-		Type:        "float64",
-		Float:       models.Floats{},
-	})
-	facturas = append(facturas, models.Base{ //n_period
-		Name:        "n_period",
-		Description: "n_period",
-		Required:    true,
+		Default:     uuid.New().String(),
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
-			Date: true,
 		},
 	})
 	facturas = append(facturas, models.Base{ //n_fact
@@ -37,31 +29,39 @@ func Facturas_GetSchema() ([]models.Base, string) {
 			Max: 10,
 		},
 	})
+	facturas = append(facturas, models.Base{ //s_impo
+		Name:        "s_impo",
+		Description: "s_impo",
+		Required:    true,
+		Update:      true,
+		Type:        "float64",
+		Float:       models.Floats{},
+	})
+	facturas = append(facturas, models.Base{ //k_stad
+		Name:        "k_stad",
+		Description: "k_stad",
+		Required:    true,
+		Update:      true,
+		Type:        "uint64",
+		Uint: models.Uints{
+			Max: 10,
+		},
+	})
+	facturas = append(facturas, models.Base{ //n_period
+		Name:        "n_period",
+		Description: "n_period",
+		Required:    true,
+		Update:      true,
+		Strings: models.Strings{
+			Expr: *models.Null(),
+			Date: true,
+		},
+	})
 	facturas = append(facturas, models.Base{ //id_clie
 		Name:        "id_clie",
 		Description: "id_clie",
-		Important:   true,
 		Required:    true,
-		Type:        "string",
-		Strings: models.Strings{
-			Expr: *models.Null(),
-		},
-	})
-	facturas = append(facturas, models.Base{ //id_fact
-		Name:        "id_fact",
-		Description: "id_fact",
-		Default:     uuid.New().String(),
 		Important:   true,
-		Type:        "string",
-		Strings: models.Strings{
-			Expr: *models.Null(),
-		},
-	})
-	facturas = append(facturas, models.Base{ //id_prod
-		Name:        "id_prod",
-		Description: "id_prod",
-		Important:   true,
-		Required:    true,
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
@@ -71,12 +71,13 @@ func Facturas_GetSchema() ([]models.Base, string) {
 		Name:        "n_clie",
 		Description: "n_clie",
 		Required:    true,
+		Update:      true,
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
 			Min:       10,
 			Max:       100,
-			LowerCase: true,
+			UpperCase: true,
 		},
 	})
 	facturas = append(facturas, models.Base{ //l_detalle
@@ -87,9 +88,9 @@ func Facturas_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       10,
+			Min:       8,
 			Max:       80,
-			LowerCase: true,
+			UpperCase: true,
 		},
 	})
 	return facturas, tableName

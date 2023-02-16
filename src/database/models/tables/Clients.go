@@ -6,12 +6,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func Clients_GetSchema() ([]models.Base, string) {
+func clients_GetSchema() ([]models.Base, string) {
 	var clients []models.Base
-	tableName := "clients"
+	tableName := "_" + "clients"
 	clients = append(clients, models.Base{ //id
 		Name:        "id",
 		Description: "id",
+		Required:    true,
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
@@ -21,13 +22,12 @@ func Clients_GetSchema() ([]models.Base, string) {
 		Name:        "l_clie",
 		Description: "l_clie",
 		Required:    true,
-		Update:      true,
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
 			Min:       10,
 			Max:       100,
-			LowerCase: true,
+			UpperCase: true,
 		},
 	})
 	clients = append(clients, models.Base{ //n_docu
@@ -39,7 +39,7 @@ func Clients_GetSchema() ([]models.Base, string) {
 			Expr:      *models.Null(),
 			Min:       8,
 			Max:       11,
-			LowerCase: true,
+			UpperCase: true,
 		},
 	})
 	clients = append(clients, models.Base{ //l_orga
@@ -52,7 +52,7 @@ func Clients_GetSchema() ([]models.Base, string) {
 			Expr:      *models.Null(),
 			Min:       15,
 			Max:       150,
-			LowerCase: true,
+			UpperCase: true,
 		},
 	})
 	clients = append(clients, models.Base{ //l_dire
@@ -65,7 +65,7 @@ func Clients_GetSchema() ([]models.Base, string) {
 			Expr:      *models.Null(),
 			Min:       20,
 			Max:       200,
-			LowerCase: true,
+			UpperCase: true,
 		},
 	})
 	clients = append(clients, models.Base{ //n_celu
@@ -75,21 +75,22 @@ func Clients_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       2,
+			Min:       12,
 			Max:       25,
-			LowerCase: true,
+			UpperCase: true,
 		},
 	})
 	clients = append(clients, models.Base{ //l_emai
 		Name:        "l_emai",
 		Description: "l_emai",
+		Required:    true,
 		Update:      true,
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
 			Min:       15,
 			Max:       150,
-			LowerCase: true,
+			UpperCase: true,
 		},
 	})
 	clients = append(clients, models.Base{ //n_repr
@@ -102,7 +103,7 @@ func Clients_GetSchema() ([]models.Base, string) {
 			Expr:      *models.Null(),
 			Min:       0,
 			Max:       8,
-			LowerCase: true,
+			UpperCase: true,
 		},
 	})
 	clients = append(clients, models.Base{ //l_repr
@@ -115,14 +116,15 @@ func Clients_GetSchema() ([]models.Base, string) {
 			Expr:      *models.Null(),
 			Min:       7,
 			Max:       70,
-			LowerCase: true,
+			UpperCase: true,
 		},
 	})
 	clients = append(clients, models.Base{ //uid
 		Name:        "uid",
 		Description: "uid",
-		Default:     uuid.New().String(),
+		Important:   true,
 		Required:    true,
+		Default:     uuid.New().String(),
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
@@ -130,8 +132,7 @@ func Clients_GetSchema() ([]models.Base, string) {
 	})
 	clients = append(clients, models.Base{ //id_prod
 		Name:        "id_prod",
-		Description: "id_prod",
-		Important:   true,
+		Description: "id_prod",	
 		Required:    true,
 		Type:        "string",
 		Strings: models.Strings{
