@@ -9,9 +9,10 @@ import (
 func Users_GetSchema() ([]models.Base, string) {
 	var users []models.Base
 	tableName := "users"
-	users = append(users, models.Base{ //id
-		Name:        "id",
-		Description: "id",
+	users = append(users, models.Base{ //id_user
+		Name:        "id_user",
+		Description: "id_user",
+		Required:    true,
 		Default:     uuid.New().String(),
 		Type:        "string",
 		Strings: models.Strings{
@@ -26,7 +27,7 @@ func Users_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       15,
+			Min:       10,
 			Max:       100,
 			LowerCase: true,
 		},
@@ -39,8 +40,8 @@ func Users_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       10,
-			Max:       200,
+			Min:       8,
+			Max:       50,
 			LowerCase: true,
 		},
 	})
@@ -53,7 +54,7 @@ func Users_GetSchema() ([]models.Base, string) {
 		Strings: models.Strings{
 			Expr:      *models.Null(),
 			Min:       10,
-			Max:       200,
+			Max:       50,
 			LowerCase: true,
 		},
 	})
