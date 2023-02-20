@@ -43,30 +43,28 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 	//objeto map
 	body := make(map[string]interface{})
-	
+
 	json.Unmarshal(req_body, &body)
 
-	dataUser := orm.NewQuerys("Seguridad").Select().Where("email;", "=", body["email"]).Exec().One()
+	dataUser := orm.NewQuerys("users").Select().Where("email", "=", body["email"]).Exec().One()
 	if len(dataUser) <= 0 {
 		response.Msg = "Usuario y Contraseña Incorrecto"
 		response.StatusCode = 300
-		response.Status = "Usuario y Contarseña Incorrecto"
+		response.Status = "Usuario y Contraseña Incorrecto"
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-	//int8, int64, int32
 
 	err = bcrypt.CompareHashAndPassword([]byte(dataUser["password_admin"].(string)), []byte(body["password_admin"].(string)))
 	if err != nil {
-		response.Msg = "Usuario y Contraseña Inconrrecto"
+		response.Msg = "Usuario y Contraseña Incorrecto"
 		response.StatusCode = 300
 		response.Status = "Error"
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
 	controller.SessionMgr.SetSessionVal(controller.SessionID, "login", true)
 
 	response.Data["users"] = dataUser

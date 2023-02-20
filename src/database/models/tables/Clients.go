@@ -39,7 +39,7 @@ func Clients_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       15,
+			Min:       10,
 			Max:       150,
 			LowerCase: true,
 		},
@@ -51,7 +51,7 @@ func Clients_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       20.000000,
+			Min:       10,
 			Max:       200,
 			LowerCase: true,
 		},
@@ -64,7 +64,7 @@ func Clients_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       15,
+			Min:       9,
 			Max:       25,
 			LowerCase: true,
 		},
