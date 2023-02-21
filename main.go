@@ -27,6 +27,7 @@ func main() {
 	routes.RutasAuth(router)
 	routes.RutasClientes(router)
 	routes.RutasClientesProductos(router)
+	routes.RutasFacturas(router)
 
 	fmt.Printf("server listening on port %s", os.Getenv("PORT"))
 	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), router))

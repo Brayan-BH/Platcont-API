@@ -42,3 +42,23 @@ func InterfaceToString(params ...interface{}) string {
 	}
 	return valueReturn
 }
+
+func IndexOf_String(arreglo []string, search string) int {
+	for indice, valor := range arreglo {
+		if valor == search {
+			return indice
+		}
+	}
+	// -1 porque no existe
+	return -1
+}
+
+func IndexOf_String_Map(arreglo []map[string]interface{}, key, search string) int {
+	for indice, valor := range arreglo {
+		if valor[key] == search {
+			return indice
+		}
+	}
+	// -1 porque no existe
+	return -1
+}

@@ -2,7 +2,7 @@ package tables
 
 import "platcont/src/database/models"
 
-func Detalle_GetSchema() ([]models.Base, string) {
+func FacturasDetalle_GetSchema() ([]models.Base, string) {
 	var detalle []models.Base
 	tableName := "facturas_" + "detalle"
 	detalle = append(detalle, models.Base{ //s_desc

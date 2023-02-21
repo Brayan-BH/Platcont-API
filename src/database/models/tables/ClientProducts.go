@@ -47,9 +47,9 @@ func Clientproducts_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       10.000000,
+			Min:       5,
 			Max:       100,
-			UpperCase: true,
+			LowerCase: true,
 		},
 	})
 	clientproducts = append(clientproducts, models.Base{ //users
@@ -62,20 +62,19 @@ func Clientproducts_GetSchema() ([]models.Base, string) {
 			Expr:      *models.Null(),
 			Min:       5,
 			Max:       20,
-			UpperCase: true,
+			LowerCase: true,
 		},
 	})
 	clientproducts = append(clientproducts, models.Base{ //data_base
 		Name:        "data_base",
 		Description: "data_base",
 		Required:    true,
-		Update:      true,
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
 			Min:       2,
 			Max:       20,
-			UpperCase: true,
+			LowerCase: true,
 		},
 	})
 	clientproducts = append(clientproducts, models.Base{ //password
@@ -87,8 +86,8 @@ func Clientproducts_GetSchema() ([]models.Base, string) {
 		Strings: models.Strings{
 			Expr:      *models.Null(),
 			Min:       8,
-			Max:       50,
-			UpperCase: true,
+			Max:       60,
+			LowerCase: true,
 		},
 	})
 	clientproducts = append(clientproducts, models.Base{ //modulos
@@ -101,7 +100,7 @@ func Clientproducts_GetSchema() ([]models.Base, string) {
 			Expr:      *models.Null(),
 			Min:       5,
 			Max:       50,
-			UpperCase: true,
+			LowerCase: true,
 		},
 	})
 	clientproducts = append(clientproducts, models.Base{ //date_facture

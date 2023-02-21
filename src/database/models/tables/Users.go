@@ -41,7 +41,7 @@ func Users_GetSchema() ([]models.Base, string) {
 		Strings: models.Strings{
 			Expr:      *models.Null(),
 			Min:       8,
-			Max:       50,
+			Max:       60,
 			LowerCase: true,
 		},
 	})
