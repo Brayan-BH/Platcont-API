@@ -15,7 +15,7 @@ import (
 func RutasClientesProductos(r *mux.Router) {
 	s := r.PathPrefix("/productos").Subrouter()
 	s.Handle("/list", (http.HandlerFunc(allProducto))).Methods("GET")
-	s.Handle("/info/{id_clie}", (http.HandlerFunc(oneProduct))).Methods("GET")
+	s.Handle("/info/{id_clipd}", (http.HandlerFunc(oneProduct))).Methods("GET")
 	s.Handle("/create", (http.HandlerFunc(insertProduct))).Methods("POST")
 	s.Handle("/update/{id_clie}", (http.HandlerFunc(updateProduct))).Methods("PUT")
 
@@ -109,20 +109,21 @@ func oneProduct(w http.ResponseWriter, r *http.Request) {
 	response := controller.NewResponseManager()
 
 	params := mux.Vars(r)
-	id_clie := params["id_clie"]
-	if id_clie == "" {
+	id_clipd := params["id_clipd"]
+	if id_clipd == "" {
 		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
 		return
 	}
 	//get allData from database
-	data_cliente := orm.NewQuerys("ClientProducts").Select("multi, users, date_facture, modulos, host").Where("id_clie", "=", id_clie).Exec().One()
 
-	if len(data_cliente) <= 0 {
+	data_cliente_product := orm.NewQuerys("ClientProducts as cp").Select("cp.*, c.l_orga, n_docu,l_emai").InnerJoin("Clients as c", "cp.id_clie = c.id_clie").Where("id_clipd", "=", id_clipd).Exec().One()
+
+	if len(data_cliente_product) <= 0 {
 		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
 		return
 	}
 
-	response.Data = data_cliente
+	response.Data = data_cliente_product
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }

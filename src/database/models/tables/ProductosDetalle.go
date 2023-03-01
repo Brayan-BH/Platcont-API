@@ -4,7 +4,7 @@ import "platcont/src/database/models"
 
 func Productosdetalle_GetSchema() ([]models.Base, string) {
 	var productosdetalle []models.Base
-	tableName := "_" + "productosdetalle"
+	tableName := "productosdetalle"
 	productosdetalle = append(productosdetalle, models.Base{ //s_impo
 		Name:        "s_impo",
 		Description: "s_impo",

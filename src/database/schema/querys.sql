@@ -1,7 +1,7 @@
 CREATE TABLE Users (
     id_user varchar(36) NOT NULL PRIMARY KEY,
     email varchar(100) NOT NULL,
-    password varchar(200) NOT NULL,
+    password varchar(200) DEFAULT '',
     password_admin varchar(200) DEFAULT ''
 );
 
@@ -14,8 +14,7 @@ CREATE TABLE Clients (
     l_emai varchar(150) DEfAULT '',
     n_repr varchar(8) DEfAULT '',
     l_repr varchar(70) DEfAULT '',
-    uid varchar(36) NOT NULL,
-    FOREIGN KEY (uid) REFERENCES Users (id_user)
+    FOREIGN KEY (id_clie) REFERENCES Users (id_user)
 );
 
 CREATE TABLE ClientProducts (

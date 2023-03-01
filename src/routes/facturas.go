@@ -18,7 +18,7 @@ func RutasFacturas(r *mux.Router) {
 	s := r.PathPrefix("/facturas").Subrouter()
 	s.Handle("/list", (http.HandlerFunc(allFacturas))).Methods("GET")
 	s.Handle("/info/{id_clie}", (http.HandlerFunc(oneProduct))).Methods("GET")
-	s.Handle("/list-factura/{id_pddt}", (http.HandlerFunc(productosDetalle))).Methods("GET")
+	s.Handle("/list-factura/{id_clipd}", (http.HandlerFunc(facturasDetalle))).Methods("GET")
 	s.Handle("/create/{id_clipd}", (http.HandlerFunc(regDetalleFactura))).Methods("POST")
 
 }
@@ -73,7 +73,7 @@ func regDetalleFactura(w http.ResponseWriter, r *http.Request) {
 
 //TODO: PRODUCTOS DETALLE
 
-func productosDetalle(w http.ResponseWriter, r *http.Request) {
+func facturasDetalle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content Type", "Aplication-Json")
 	response := controller.NewResponseManager()
 
@@ -85,10 +85,10 @@ func productosDetalle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pddt_detail := orm.NewQuerys("ProductosDetalle").Select("years || '-' || months as periodo,l_deta,s_impo").Where("id_pddt", "=", id_pddt).Exec().All()
+	pddt_detail := orm.NewQuerys("productosdetalle").Select("years || '-' || months as periodo,l_deta,id_clipd,id_pddt,s_impo").Where("id_pddt", "=", id_pddt).Exec().All()
 
 	var newFact []string
-	pagoCuenta := map[string]interface{}{
+	pago := map[string]interface{}{
 		"if":      false,
 		"periodo": "",
 		"s_impo":  0,
@@ -103,10 +103,19 @@ func productosDetalle(w http.ResponseWriter, r *http.Request) {
 		// 	pagoCuenta["periodo"] = v["periodo"]
 		// 	pagoCuenta["s_impo"] = v["s_impo"]
 		// }
+		if v["s_impo"] == true {
+			pago["s_impo"] = v["s_impo"]
+		}
 	}
 	// fmt.Println(newFact)
 
-	data_fact_detail := orm.NewQuerys("Facturas_Detalle").Select("n_item", "c_prod", "s_impo", "s_desc", "s_igv", "s_tota", "l_peri").Where("id_pddt", "=", id_pddt).Exec().One()
+	id_clipd := params["id_clipd"]
+
+	if id_clipd == "" {
+		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
+		return
+	}
+	data_fact_detail := orm.NewQuerys("Facturas_Detalle").Select("n_item", "c_prod", "s_impo", "s_desc", "s_igv", "s_tota", "l_peri").Where("id_clipd", "=", id_clipd).Exec().One()
 	date_fact := date.GetDate(data_fact_detail["periodo"].(string))
 	date_now := date.GetDateLocation()
 
@@ -130,18 +139,17 @@ func productosDetalle(w http.ResponseWriter, r *http.Request) {
 			month := fmt.Sprintf("%d", e)
 			if library.IndexOf_String(newFact, year+"-"+month) == -1 {
 				data_facturaciones = append(data_facturaciones, map[string]interface{}{
-					"n_year":    year,
-					"n_month":   month,
+					"year":      year,
+					"month":     month,
 					"s_impo":    impo,
 					"last_amor": 0,
 				})
 			} else {
-				if pagoCuenta["if"].(bool) == true {
+				if pago["if"].(bool) == true {
 					data_facturaciones = append(data_facturaciones, map[string]interface{}{
-						"n_year":    year,
-						"n_month":   month,
+						"year":      year,
+						"month":     month,
 						"s_impo":    impo,
-						"last_amor": pagoCuenta["s_impo"].(float64),
 					})
 				}
 			}

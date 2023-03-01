@@ -8,55 +8,45 @@ import (
 	"platcont/src/controller"
 	"platcont/src/database/models/tables"
 	"platcont/src/database/orm"
+	"platcont/src/libraries/library"
+	"platcont/src/middleware"
 
 	"github.com/gorilla/mux"
 )
 
 func RutasClientes(r *mux.Router) {
 	s := r.PathPrefix("/clientes").Subrouter()
-	s.Handle("/create", (http.HandlerFunc(insertCliente))).Methods("POST")
-	s.Handle("/update/{uid}", (http.HandlerFunc(updateCliente))).Methods("PUT")
-
-
+	s.Handle("/info", middleware.Autentication(http.HandlerFunc(GetOneClient))).Methods("GET")
+	// s.Handle("/register", (http.HandlerFunc(RegisterCliente))).Methods("POST")
+	// s.Handle("/create", (http.HandlerFunc(CreateUser))).Methods("POST")
+	s.Handle("/update", (http.HandlerFunc(UpdateCliente))).Methods("PUT")
 }
 
+func GetOneClient(w http.ResponseWriter, r *http.Request) {
 
-func insertCliente(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content Type", "Aplication-Json")
 	response := controller.NewResponseManager()
 
-	data_request, err := controller.CheckBody(w, r)
-	if err != nil {
+	id_clie := library.GetSession_key("id_user")
+
+	//get allData from database
+	dataUser := orm.NewQuerys("clients").Select().Where("id_clie", "=", id_clie).Exec().One()
+
+	if len(dataUser) <= 0 {
+		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
 		return
 	}
 
-	var data_insert []map[string]interface{}
-	data_insert = append(data_insert, data_request)
+	response.Data["info"] = dataUser
 
-	schema, table := tables.Clients_GetSchema()
-	_Clientes := orm.SqlExec{}
-	err = _Clientes.New(data_insert, table).Insert(schema)
-	if err != nil {
-		controller.ErrorsWaning(w, err)
-		return
-	}
-
-	err = _Clientes.Exec()
-	if err != nil {
-		controller.ErrorsWaning(w, err)
-		return
-	}
-
-	response.Data = _Clientes.Data[0]
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
-func updateCliente(w http.ResponseWriter, r *http.Request) {
+func UpdateCliente(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := controller.NewResponseManager()
-	params := mux.Vars(r)
-	uid := params["uid"]
+	uid := library.GetSession_key("id_user")
 	if uid == "" {
 		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
 		return

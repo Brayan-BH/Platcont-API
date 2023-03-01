@@ -14,7 +14,7 @@ func Autentication(next http.Handler) http.Handler {
 
 		session := library.GetSession_key("login")
 		if session != nil {
-			if session.(string) == "true" {
+			if session.(bool) == true {
 				next.ServeHTTP(w, r)
 			} else {
 				response.Msg = "Debe Iniciar Session"

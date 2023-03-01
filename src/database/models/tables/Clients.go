@@ -13,6 +13,7 @@ func Clients_GetSchema() ([]models.Base, string) {
 		Name:        "id_clie",
 		Description: "id_clie",
 		Required:    true,
+		Important:   true,
 		Default:     uuid.New().String(),
 		Type:        "string",
 		Strings: models.Strings{
@@ -106,16 +107,6 @@ func Clients_GetSchema() ([]models.Base, string) {
 			Min:       7,
 			Max:       70,
 			LowerCase: true,
-		},
-	})
-	clients = append(clients, models.Base{ //uid
-		Name:        "uid",
-		Description: "uid",
-		Required:    true,
-		Important:   true,
-		Type:        "string",
-		Strings: models.Strings{
-			Expr: *models.Null(),
 		},
 	})
 	return clients, tableName

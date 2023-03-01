@@ -35,7 +35,6 @@ func Users_GetSchema() ([]models.Base, string) {
 	users = append(users, models.Base{ //password
 		Name:        "password",
 		Description: "password",
-		Required:    true,
 		Update:      true,
 		Type:        "string",
 		Strings: models.Strings{
