@@ -12,9 +12,22 @@ func Autentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := controller.NewResponseManager()
 
-		session := library.GetSession_key("login")
+		sessionID := r.Header.Get("Access-Token")
+
+		// sessionID := controller.SessionMgr.CheckCookieValid(w, r)
+		if sessionID == "" {
+			response.Msg = "Debe Iniciar Session"
+			response.Status = "Error"
+			response.StatusCode = 401 //inautorizado
+			w.Header().Set("Content-Type", "Aplication-Json")
+			w.WriteHeader(http.StatusUnauthorized)
+
+			return
+		}
+
+		session := library.GetSession_key(sessionID, "login")
 		if session != nil {
-			if session.(bool) == true {
+			if session == true {
 				next.ServeHTTP(w, r)
 			} else {
 				response.Msg = "Debe Iniciar Session"

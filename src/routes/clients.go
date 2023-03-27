@@ -17,9 +17,8 @@ import (
 func RutasClientes(r *mux.Router) {
 	s := r.PathPrefix("/clientes").Subrouter()
 	s.Handle("/info", middleware.Autentication(http.HandlerFunc(GetOneClient))).Methods("GET")
-	// s.Handle("/register", (http.HandlerFunc(RegisterCliente))).Methods("POST")
-	// s.Handle("/create", (http.HandlerFunc(CreateUser))).Methods("POST")
-	s.Handle("/update", (http.HandlerFunc(UpdateCliente))).Methods("PUT")
+	s.Handle("/update-pass", middleware.Autentication(http.HandlerFunc(UpdatePassword))).Methods("PUT")
+	s.Handle("/update", middleware.Autentication(http.HandlerFunc(UpdateCliente))).Methods("PUT")
 }
 
 func GetOneClient(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +26,11 @@ func GetOneClient(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content Type", "Aplication-Json")
 	response := controller.NewResponseManager()
 
-	id_clie := library.GetSession_key("id_user")
+	sessionID := r.Header.Get("Access-Token")
+
+	// sessionID := controller.SessionMgr.StartSession(w, r)
+
+	id_clie := library.GetSession_key(sessionID, "id_user")
 
 	//get allData from database
 	dataUser := orm.NewQuerys("clients").Select().Where("id_clie", "=", id_clie).Exec().One()
@@ -38,7 +41,48 @@ func GetOneClient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Data["info"] = dataUser
+	response.Data["cookie_token"] = sessionID
 
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	response := controller.NewResponseManager()
+
+	sessionID := controller.SessionMgr.StartSession(w, r)
+
+	id_user := library.GetSession_key(sessionID, "id_user")
+	if id_user == "" {
+		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
+		return
+	}
+
+	data_request, err := controller.CheckBody(w, r)
+	if err != nil {
+		return
+	}
+
+	data_request["where"] = map[string]interface{}{"id_user": id_user}
+	var data_update []map[string]interface{}
+	data_update = append(data_update, data_request)
+
+	schema, table := tables.Users_GetSchema()
+	_Password_Admin := orm.SqlExec{}
+	err = _Password_Admin.New(data_update, table).Update(schema)
+	if err != nil {
+		controller.ErrorsWaning(w, err)
+		return
+	}
+
+	err = _Password_Admin.Exec()
+	if err != nil {
+		controller.ErrorsWaning(w, err)
+		return
+	}
+
+	response.Data = _Password_Admin.Data[0]
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
@@ -46,8 +90,12 @@ func GetOneClient(w http.ResponseWriter, r *http.Request) {
 func UpdateCliente(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := controller.NewResponseManager()
-	uid := library.GetSession_key("id_user")
-	if uid == "" {
+
+	sessionID := r.Header.Get("Access-Token")
+
+	id_user := library.GetSession_key(sessionID, "id_user")
+
+	if id_user == "" {
 		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
 		return
 	}
@@ -55,7 +103,7 @@ func UpdateCliente(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	data_request["where"] = map[string]interface{}{"uid": uid}
+	data_request["where"] = map[string]interface{}{"id_user": id_user}
 	var data_update []map[string]interface{}
 	data_update = append(data_update, data_request)
 

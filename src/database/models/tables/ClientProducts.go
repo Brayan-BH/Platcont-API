@@ -2,8 +2,6 @@ package tables
 
 import (
 	"platcont/src/database/models"
-
-	"github.com/google/uuid"
 )
 
 func Clientproducts_GetSchema() ([]models.Base, string) {
@@ -13,7 +11,6 @@ func Clientproducts_GetSchema() ([]models.Base, string) {
 		Name:        "id_clipd",
 		Description: "id_clipd",
 		Required:    true,
-		Default:     uuid.New().String(),
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
@@ -80,7 +77,6 @@ func Clientproducts_GetSchema() ([]models.Base, string) {
 	clientproducts = append(clientproducts, models.Base{ //password
 		Name:        "password",
 		Description: "password",
-		Required:    true,
 		Update:      true,
 		Type:        "string",
 		Strings: models.Strings{
@@ -98,7 +94,7 @@ func Clientproducts_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       5,
+			Min:       4,
 			Max:       50,
 			LowerCase: true,
 		},

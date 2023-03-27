@@ -8,38 +8,28 @@ import (
 	"platcont/src/controller"
 	"platcont/src/database/models/tables"
 	"platcont/src/database/orm"
+	"platcont/src/libraries/library"
+	"platcont/src/middleware"
 
 	"github.com/gorilla/mux"
 )
 
 func RutasClientesProductos(r *mux.Router) {
 	s := r.PathPrefix("/productos").Subrouter()
-	s.Handle("/list", (http.HandlerFunc(allProducto))).Methods("GET")
-	s.Handle("/info/{id_clipd}", (http.HandlerFunc(oneProduct))).Methods("GET")
-	s.Handle("/create", (http.HandlerFunc(insertProduct))).Methods("POST")
-	s.Handle("/update/{id_clie}", (http.HandlerFunc(updateProduct))).Methods("PUT")
+	s.Handle("/info", middleware.Autentication(http.HandlerFunc(ClientProducts))).Methods("GET")
+	s.Handle("/create", middleware.Autentication(http.HandlerFunc(insertProduct))).Methods("POST")
+	s.Handle("/create", middleware.Autentication(http.HandlerFunc(InsertProductsDetail))).Methods("POST")
+	s.Handle("/update", middleware.Autentication(http.HandlerFunc(updateProduct))).Methods("PUT")
 
-}
-
-func allProducto(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	response := controller.NewResponseManager()
-
-	data_client_product := orm.NewQuerys("Clientproducts").Select().Exec().All()
-
-	if len(data_client_product) <= 0 {
-		controller.ErrorsSuccess(w, errors.New("No se encontraron resultados para la consulta"))
-		return
-	}
-
-	response.Data["clientProducts"] = data_client_product
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
 }
 
 func insertProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := controller.NewResponseManager()
+	sessionID := controller.SessionMgr.StartSession(w, r)
+
+	id_clie := library.GetSession_key(sessionID, "id_user")
+	id_clipd := library.GetSession_key(sessionID, "id_user")
 
 	data_request, err := controller.CheckBody(w, r)
 	if err != nil {
@@ -47,23 +37,27 @@ func insertProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data_insert []map[string]interface{}
+	data_request["id_clie"] = id_clie
+	data_request["id_clipd"] = id_clipd
 	data_insert = append(data_insert, data_request)
 
 	schema, table := tables.Clientproducts_GetSchema()
-	_Client_Products := orm.SqlExec{}
-	err = _Client_Products.New(data_insert, table).Insert(schema)
+	_Clientes_Products := orm.SqlExec{}
+	err = _Clientes_Products.New(data_insert, table).Insert(schema)
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	err = _Client_Products.Exec()
+	err = _Clientes_Products.Exec()
 	if err != nil {
 		controller.ErrorsWaning(w, err)
+		// controller.ErrorsWaning(w, errors.New("Error al Registrar producto"))
 		return
 	}
 
-	response.Data = _Client_Products.Data[0]
+	returnData := _Clientes_Products.Data[0]
+	response.Data = returnData
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
@@ -71,8 +65,10 @@ func insertProduct(w http.ResponseWriter, r *http.Request) {
 func updateProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := controller.NewResponseManager()
-	params := mux.Vars(r)
-	id_clie := params["id_clie"]
+
+	sessionID := controller.SessionMgr.StartSession(w, r)
+
+	id_clie := library.GetSession_key(sessionID, "id_user")
 	if id_clie == "" {
 		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
 		return
@@ -104,26 +100,29 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func oneProduct(w http.ResponseWriter, r *http.Request) {
+func ClientProducts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content Type", "Aplication-Json")
 	response := controller.NewResponseManager()
 
-	params := mux.Vars(r)
-	id_clipd := params["id_clipd"]
-	if id_clipd == "" {
-		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
+	sessionID := controller.SessionMgr.StartSession(w, r)
+
+	id_clipd := library.GetSession_key(sessionID, "id_user")
+
+	data_client_product := orm.NewQuerys("clientproducts").Select("data_base,date_facture,host,id_clie,id_clipd,modulos, multi,users").Where("id_clie", "=", id_clipd).Exec().All()
+	if len(data_client_product) <= 0 {
+		response.Msg = "Producto no encontrado"
+		response.StatusCode = 300
+		response.Status = "Producto no encontrado"
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
-	//get allData from database
 
-	data_cliente_product := orm.NewQuerys("ClientProducts as cp").Select("cp.*, c.l_orga, n_docu,l_emai").InnerJoin("Clients as c", "cp.id_clie = c.id_clie").Where("id_clipd", "=", id_clipd).Exec().One()
+	// controller.SessionMgr.SetSessionVal(controller.SessionID, "id_clipd", data_client_product["id_clipd"].(string))
 
-	if len(data_cliente_product) <= 0 {
-		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
-		return
-	}
-
-	response.Data = data_cliente_product
+	response.Data["productCLient"] = data_client_product
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
+
+

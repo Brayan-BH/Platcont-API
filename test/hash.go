@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 func main() {
-	password := []byte("1231231123")
+	password := []byte("1234567890")
 	hashPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 
 	if err != nil {

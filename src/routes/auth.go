@@ -2,12 +2,13 @@ package routes
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"net/http"
 	"platcont/src/controller"
 	"platcont/src/database/models/tables"
 	"platcont/src/database/orm"
+	"platcont/src/libraries/library"
+	"platcont/src/middleware"
 
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
@@ -19,7 +20,7 @@ func RutasAuth(r *mux.Router) {
 	s.HandleFunc("/login", login).Methods("PUT")
 	s.HandleFunc("/logout", logout).Methods("PUT")
 	s.HandleFunc("/first-step", registerFirst).Methods("POST")
-	s.HandleFunc("/second-step", registerSecond).Methods("POST")
+	s.Handle("/second-step", middleware.Autentication(http.HandlerFunc(registerSecond))).Methods("POST")
 
 }
 
@@ -32,29 +33,28 @@ func auth(w http.ResponseWriter, r *http.Request) {
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
-	//TODO: Logout
-	controller.SessionMgr.EndSessionBy(controller.SessionID)
+	// Finalizar la sesión del usuario
+	cookies, _ := r.Cookie("cookie-token")
+	sessionID := cookies.Value
+	controller.SessionMgr.EndSessionBy(sessionID)
+	err := controller.NewResponseManager()
 
-	w.Header().Set("Content-Type", "Aplication-Json")
-	response := controller.NewResponseManager()
-
-	if close == true {
-		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
+	if err != nil {
+		// Si hay un error al finalizar la sesión, mostrar un mensaje de error
+		// Si todo va bien, mostrar una respuesta exitosa
+		response := controller.NewResponseManager()
+		response.Msg = "Sesión cerrada exitosamente"
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
-	controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
-	return
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "Aplication-Json")
 	response := controller.NewResponseManager()
-
-	controller.SessionID = controller.SessionMgr.StartSession(w, r)
 
 	// Get the request body
 	req_body, err := ioutil.ReadAll(r.Body)
@@ -90,11 +90,18 @@ func login(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-	// Establecer el valor "login" en la sesión
-	controller.SessionMgr.SetSessionVal(controller.SessionID, "login", true)
-	controller.SessionMgr.SetSessionVal(controller.SessionID, "id_user", dataUser["id_user"].(string))
+	SessionID := controller.SessionMgr.StartSession(w, r)
 
-	response.Data["users"] = dataUser
+	// Establecer el valor "login" en la sesión
+	controller.SessionMgr.SetSessionVal(SessionID, "login", true)
+	controller.SessionMgr.SetSessionVal(SessionID, "id_user", dataUser["id_user"].(string))
+
+	returnData := dataUser
+	delete(returnData, "id_user")
+	delete(returnData, "password_admin")
+	delete(returnData, "password")
+	response.Data["users"] = returnData
+	response.Data["cookie_token"] = SessionID
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
@@ -112,20 +119,25 @@ func registerFirst(w http.ResponseWriter, r *http.Request) {
 	data_insert = append(data_insert, data_request)
 
 	schema, table := tables.Users_GetSchema()
-	_Clientes := orm.SqlExec{}
-	err = _Clientes.New(data_insert, table).Insert(schema)
+	clientes := orm.SqlExec{}
+	err = clientes.New(data_insert, table).Insert(schema)
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	err = _Clientes.Exec()
+	err = clientes.Exec()
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	response.Data = _Clientes.Data[0]
+	returnData := clientes.Data[0]
+	delete(returnData, "id_user")
+	delete(returnData, "password_admin")
+	delete(returnData, "password")
+	response.Data = returnData
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
@@ -133,6 +145,9 @@ func registerFirst(w http.ResponseWriter, r *http.Request) {
 func registerSecond(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := controller.NewResponseManager()
+	SessionID := controller.SessionMgr.StartSession(w, r)
+
+	id_clie := library.GetSession_key(SessionID, "id_user")
 
 	data_request, err := controller.CheckBody(w, r)
 	if err != nil {
@@ -140,23 +155,24 @@ func registerSecond(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data_insert []map[string]interface{}
+	data_request["id_clie"] = id_clie
 	data_insert = append(data_insert, data_request)
 
 	schema, table := tables.Clients_GetSchema()
-	_Clientes := orm.SqlExec{}
-	err = _Clientes.New(data_insert, table).Insert(schema)
+	clientes := orm.SqlExec{}
+	err = clientes.New(data_insert, table).Insert(schema)
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	err = _Clientes.Exec()
+	err = clientes.Exec()
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	returnData := _Clientes.Data[0]
+	returnData := clientes.Data[0]
 	response.Data = returnData
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)

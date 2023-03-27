@@ -2,8 +2,6 @@ package tables
 
 import (
 	"platcont/src/database/models"
-
-	"github.com/google/uuid"
 )
 
 func Clients_GetSchema() ([]models.Base, string) {
@@ -13,8 +11,6 @@ func Clients_GetSchema() ([]models.Base, string) {
 		Name:        "id_clie",
 		Description: "id_clie",
 		Required:    true,
-		Important:   true,
-		Default:     uuid.New().String(),
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
@@ -78,7 +74,7 @@ func Clients_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       15,
+			Min:       10,
 			Max:       50,
 			LowerCase: true,
 		},

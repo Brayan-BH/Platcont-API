@@ -1,6 +1,10 @@
 package tables
 
-import "platcont/src/database/models"
+import (
+	"platcont/src/database/models"
+
+	"github.com/google/uuid"
+)
 
 func Productosdetalle_GetSchema() ([]models.Base, string) {
 	var productosdetalle []models.Base
@@ -10,6 +14,8 @@ func Productosdetalle_GetSchema() ([]models.Base, string) {
 		Description: "s_impo",
 		Required:    true,
 		Update:      true,
+		Type:        "float64",
+		Float:       models.Floats{},
 	})
 	productosdetalle = append(productosdetalle, models.Base{ //months
 		Name:        "months",
@@ -35,7 +41,7 @@ func Productosdetalle_GetSchema() ([]models.Base, string) {
 		Name:        "id_pddt",
 		Description: "id_pddt",
 		Required:    true,
-		Update:      true,
+		Default:     uuid.New().String(),
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
@@ -44,8 +50,6 @@ func Productosdetalle_GetSchema() ([]models.Base, string) {
 	productosdetalle = append(productosdetalle, models.Base{ //id_fact
 		Name:        "id_fact",
 		Description: "id_fact",
-		Required:    true,
-		Update:      true,
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
@@ -55,7 +59,7 @@ func Productosdetalle_GetSchema() ([]models.Base, string) {
 		Name:        "id_clipd",
 		Description: "id_clipd",
 		Required:    true,
-		Update:      true,
+		Important:   true,
 		Type:        "string",
 		Strings: models.Strings{
 			Expr: *models.Null(),
@@ -69,7 +73,7 @@ func Productosdetalle_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       10.000000,
+			Min:       10,
 			Max:       100,
 			UpperCase: true,
 		},

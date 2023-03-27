@@ -9,10 +9,10 @@ import (
 
 //typeof
 //recibe un valor interface que no se reconoce su tipo y devuelve un string
-func GetSession_key(key string) interface{} {
-	data, err := controller.SessionMgr.GetSessionVal(controller.SessionID, key)
+func GetSession_key(SessionID string, key string) interface{} {
+	data, err := controller.SessionMgr.GetSessionVal(SessionID, key)
 	if !err {
-		fmt.Println("Error session ID:"+controller.SessionID+" key:("+key+"):", err)
+		fmt.Println("Error session ID:"+SessionID+" key:("+key+"):", err)
 		fmt.Println("lista:", controller.SessionMgr.GetSessionIDList())
 		return ""
 	}

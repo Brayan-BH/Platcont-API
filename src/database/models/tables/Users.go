@@ -13,6 +13,7 @@ func Users_GetSchema() ([]models.Base, string) {
 		Name:        "id_user",
 		Description: "id_user",
 		Required:    true,
+		Important:   true,
 		Default:     uuid.New().String(),
 		Type:        "string",
 		Strings: models.Strings{
@@ -39,9 +40,7 @@ func Users_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       8,
-			Max:       60,
-			LowerCase: true,
+			Encriptar: true,
 		},
 	})
 	users = append(users, models.Base{ //password_admin
@@ -52,9 +51,7 @@ func Users_GetSchema() ([]models.Base, string) {
 		Type:        "string",
 		Strings: models.Strings{
 			Expr:      *models.Null(),
-			Min:       10,
-			Max:       50,
-			LowerCase: true,
+			Encriptar: true,
 		},
 	})
 	return users, tableName
