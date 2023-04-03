@@ -41,7 +41,7 @@ func GetOneClient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Data["info"] = dataUser
-	response.Data["cookie_token"] = sessionID
+	// response.Data["cookie_token"] = sessionID
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
@@ -51,7 +51,8 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := controller.NewResponseManager()
 
-	sessionID := controller.SessionMgr.StartSession(w, r)
+	// sessionID := controller.SessionMgr.StartSession(w, r)
+	sessionID := r.Header.Get("Access-Token")
 
 	id_user := library.GetSession_key(sessionID, "id_user")
 	if id_user == "" {

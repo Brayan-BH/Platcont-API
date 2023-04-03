@@ -26,6 +26,7 @@ CREATE TABLE ClientProducts (
     data_base varchar(20) DEFAULT '',
     password varchar(100) DEFAULT '',
     modulos varchar(50) DEFAULT '',
+    s_impo float8 NOT NULL,
     -- 1 := general
     -- 2 := caja
     -- 4 := contabilidad
@@ -74,9 +75,7 @@ CREATE TABLE ProductosDetalle (
     months int not null,
     years int not null,
     id_fact varchar(36) NOT NULL,
-    FOREIGN KEY (id_clipd) REFERENCES ClientProducts (id_clipd)
-    -- FOREIGN KEY (id_fact) REFERENCES Facturas (id_fact)
-
+    FOREIGN KEY (id_clipd) REFERENCES ClientProducts (id_clipd) -- FOREIGN KEY (id_fact) REFERENCES Facturas (id_fact)
 );
 
 CREATE TABLE Facturas_Detalle (
@@ -92,4 +91,12 @@ CREATE TABLE Facturas_Detalle (
     foreign key (id_fact) references Facturas (id_fact),
     foreign key (id_pddt) references ProductosDetalle (id_pddt),
     constraint id_fact_n_item unique (id_fact, n_item)
+);
+
+CREATE TABLE Versiones (
+    id_version serial PRIMARY KEY not null,
+    c_vers varchar(100) not null,
+    id_file varchar(36) not null,
+    l_deta varchar(500),
+    f_digi timestamp DEFAULT now()
 );

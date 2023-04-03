@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="container-app">
+        <div class="app-info">
+            <h1 class="title-header">Buscanos en nuestras Plataformas</h1>
+            <p>
+                La mejor manera de evaluar las ventajas de la aplicación es descargarla y comenzar a utilizarla. Las
+                diversas tarifas
+                aplicadas a los pedidos se encuentran disponibles en la aplicación, teniendo en cuenta sus
+                características: soporte personalizado, flexible, rápida información y facil de usar.
+            </p>
+            <p>Descargas:</p>
+            <div class="downloads">
+                <button class="btn-download" id="apkDownload">
+                    Descargar apk
+                    <a class="material-icons">
+                        android
+                    </a>
+                </button>
+                    Descargar escritorio
+                    <a download="platcont-setup.exe"
+                        href="http://localhost:5000/public/platcont-setup.exe">
+                        Descargando
+                    </a>
+            </div>
+        </div>
+    </div>
+    <script>
+        const apkDownloadBtn = document.getElementById("apkDownload");
+        const exeDownloadBtn = document.getElementById("exeDownload");
+
+        apkDownloadBtn.addEventListener("click", () => {
+            console.log("Descargando apk...");
+            const link = document.createElement("a");
+            link.href = "/public/platcont-setup.apk";
+            link.download = "platcont-setup.apk";
+            link.click();
+        });
+
+        exeDownloadBtn.addEventListener("click", () => {
+            console.log("Descargando exe...");
+            const link = document.createElement("a");
+            link.href = "/public/platcont-setup.exe";
+            link.download = "platcont-setup.exe";
+            link.click();
+        });
+    </script>
+</body>
+
+</html>

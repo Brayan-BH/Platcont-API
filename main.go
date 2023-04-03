@@ -24,11 +24,23 @@ func main() {
 	}
 	middleware.EnableCORS(router)
 	router.HandleFunc("/", inits)
+
+	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
+	// router.HandleFunc("/static/img", func(w http.ResponseWriter, r *http.Request) {
+	// 	fmt.Println(r)
+	// 	file, err := ioutil.ReadFile("./public/code.png")
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	w.Write(file)
+	// })
+
 	routes.RutasAuth(router)
 	routes.RutasClientes(router)
 	routes.RutasClientesProductos(router)
 	routes.RutasFacturas(router)
 	routes.RutasProductosDetalle(router)
+	routes.RutaVersiones(router)
 
 	fmt.Printf("server listening on port %s", os.Getenv("PORT"))
 	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), router))

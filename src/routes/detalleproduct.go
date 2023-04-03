@@ -68,6 +68,7 @@ func ProductsDetail(w http.ResponseWriter, r *http.Request) {
 	id_pddt := library.GetSession_key(sessionID, "id_user")
 
 	data_product_detail := orm.NewQuerys("productosdetalle").Select().Where("id_clipd", "=", id_pddt).Exec().All()
+	// data_product_detail := orm.NewQuerys("productosdetalle as pd").Select("pd.*,l_orga").InnerJoin("clients as c", "pd.id_clie = c.id_clie").Where("id_clipd", "=", id_pddt).Exec().All()
 	if len(data_product_detail) <= 0 {
 		response.Msg = "Detalle de producto no encontrado"
 		response.StatusCode = 300

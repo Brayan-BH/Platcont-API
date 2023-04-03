@@ -16,7 +16,7 @@ import (
 
 func main() {
 	basePath := "./tmp/"
-	table := "facturas_detalle"
+	table := "versiones"
 	resultTables := consultar("SELECT table_name FROM Information_Schema.TABLES WHERE table_name='" + table + "'")
 	// resultTables := consultar("select * from requ_organization")
 	// fmt.Println("resultTables: ", resultTables)

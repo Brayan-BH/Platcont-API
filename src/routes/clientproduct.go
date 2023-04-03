@@ -104,11 +104,12 @@ func ClientProducts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content Type", "Aplication-Json")
 	response := controller.NewResponseManager()
 
-	sessionID := controller.SessionMgr.StartSession(w, r)
+	sessionID := r.Header.Get("Access-Token")
 
 	id_clipd := library.GetSession_key(sessionID, "id_user")
 
 	data_client_product := orm.NewQuerys("clientproducts").Select("data_base,date_facture,host,id_clie,id_clipd,modulos, multi,users").Where("id_clie", "=", id_clipd).Exec().All()
+	// data_client_product := orm.NewQuerys("clientproducts as cp").Select("cp.*,l_orga").InnerJoin("clients as c", "cp.id_clie = c.id_clie").Where("id_clipd", "=", id_clipd).Exec().All()
 	if len(data_client_product) <= 0 {
 		response.Msg = "Producto no encontrado"
 		response.StatusCode = 300
@@ -120,9 +121,7 @@ func ClientProducts(w http.ResponseWriter, r *http.Request) {
 
 	// controller.SessionMgr.SetSessionVal(controller.SessionID, "id_clipd", data_client_product["id_clipd"].(string))
 
-	response.Data["productCLient"] = data_client_product
+	response.Data["productClient"] = data_client_product
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
-
-
