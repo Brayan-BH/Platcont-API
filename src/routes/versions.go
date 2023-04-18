@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"platcont/src/controller"
-	"platcont/src/database/orm"
 
+	"github.com/deybin/go_basic_orm"
 	"github.com/gorilla/mux"
 )
 
@@ -20,11 +20,11 @@ func LastVersion(w http.ResponseWriter, r *http.Request) {
 	response := controller.NewResponseManager()
 
 	// Obtener la versión más reciente ordenando por fecha descendente
-	data_versiones := orm.NewQuerys("versiones").
+	data_versiones, _ := new(go_basic_orm.Querys).NewQuerys("versiones").
 		Select("c_vers, id_file, l_deta").
 		OrderBy("f_digi DESC").
 		Limit(1).
-		Exec().
+		Exec(go_basic_orm.Config_Query{Cloud: true}).
 		One()
 
 	if len(data_versiones) <= 0 {

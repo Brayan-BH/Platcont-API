@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"platcont/src/controller"
 	"platcont/src/database/models/tables"
-	"platcont/src/database/orm"
 	"platcont/src/libraries/date"
 	"platcont/src/libraries/library"
 	"platcont/src/middleware"
 
+	"github.com/deybin/go_basic_orm"
 	"github.com/gorilla/mux"
 )
 
@@ -30,7 +30,8 @@ func AllFactura(w http.ResponseWriter, r *http.Request) {
 
 	id_fact := library.GetSession_key(sessionID, "id_user")
 
-	data_facturaciones := orm.NewQuerys("facturas").Select().Where("id_clipd", "=", id_fact).Exec().All()
+	data_facturaciones, _ := new(go_basic_orm.Querys).NewQuerys("facturas").Select().Where("id_clipd", "=", id_fact).Exec(go_basic_orm.Config_Query{Cloud: true}).All()
+
 	if len(data_facturaciones) <= 0 {
 		response.Msg = "Factura no encontrado"
 		response.StatusCode = 300
@@ -39,8 +40,6 @@ func AllFactura(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
-	// controller.SessionMgr.SetSessionVal(controller.SessionID, "id_fact", data_facturaciones["id_fact"].(string))
 
 	response.Data["facturas"] = data_facturaciones
 	w.WriteHeader(http.StatusOK)
@@ -66,14 +65,14 @@ func UpdateFactura(w http.ResponseWriter, r *http.Request) {
 	data_update = append(data_update, data_request)
 
 	schema, table := tables.Facturas_GetSchema()
-	_Facturas := orm.SqlExec{}
+	_Facturas := go_basic_orm.SqlExec{}
 	err = _Facturas.New(data_update, table).Update(schema)
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	err = _Facturas.Exec()
+	err = _Facturas.Exec("Platcont")
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
@@ -91,16 +90,15 @@ func FacturasDetalle(w http.ResponseWriter, r *http.Request) {
 	SessionId := r.Header.Get("Access-Token")
 	id_clipd := library.GetSession_key(SessionId, "id_user")
 
-	data_product_detail := orm.NewQuerys("productosdetalle").Select("months || '/' || years as periodo, s_impo, l_deta").Where("id_clipd", "=", id_clipd).Exec().All()
+	data_product_detail, _ := new(go_basic_orm.Querys).NewQuerys("productosdetalle").Select("months || '/' || years as periodo, s_impo, l_deta").Where("id_clipd", "=", id_clipd).Exec(go_basic_orm.Config_Query{Cloud: true}).All()
 
 	var newFact []string
 
 	for _, v := range data_product_detail {
 		newFact = append(newFact, v["periodo"].(string))
 	}
-	// fmt.Println(newFact)
 
-	data_client_product := orm.NewQuerys("clientproducts").Select("date_facture, s_impo").Where("id_clipd", "=", id_clipd).Exec().One()
+	data_client_product, _ := new(go_basic_orm.Querys).NewQuerys("clientproducts").Select("date_facture, s_impo").Where("id_clipd", "=", id_clipd).Exec(go_basic_orm.Config_Query{Cloud: true}).One()
 
 	date_fact := date.GetDate(data_client_product["date_facture"].(string))
 	date_now := date.GetDateLocation()
@@ -120,7 +118,6 @@ func FacturasDetalle(w http.ResponseWriter, r *http.Request) {
 			month = month_now
 		}
 		for e := month_init; e <= month; e++ {
-			// fmt.Println(i, e)
 			year := fmt.Sprintf("%v", i)
 			month := fmt.Sprintf("%02d", e)
 			if library.IndexOf_String(newFact, year+"-"+month) == -1 {

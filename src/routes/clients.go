@@ -7,10 +7,10 @@ import (
 
 	"platcont/src/controller"
 	"platcont/src/database/models/tables"
-	"platcont/src/database/orm"
 	"platcont/src/libraries/library"
 	"platcont/src/middleware"
 
+	"github.com/deybin/go_basic_orm"
 	"github.com/gorilla/mux"
 )
 
@@ -28,12 +28,10 @@ func GetOneClient(w http.ResponseWriter, r *http.Request) {
 
 	sessionID := r.Header.Get("Access-Token")
 
-	// sessionID := controller.SessionMgr.StartSession(w, r)
-
 	id_clie := library.GetSession_key(sessionID, "id_user")
 
 	//get allData from database
-	dataUser := orm.NewQuerys("clients").Select().Where("id_clie", "=", id_clie).Exec().One()
+	dataUser, _ := new(go_basic_orm.Querys).NewQuerys("clients").Select().Where("id_clie", "=", id_clie).Exec(go_basic_orm.Config_Query{Cloud: true}).One()
 
 	if len(dataUser) <= 0 {
 		controller.ErrorsWaning(w, errors.New("no se encontraron resultados para la consulta"))
@@ -70,14 +68,14 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	data_update = append(data_update, data_request)
 
 	schema, table := tables.Users_GetSchema()
-	_Password_Admin := orm.SqlExec{}
+	_Password_Admin := go_basic_orm.SqlExec{}
 	err = _Password_Admin.New(data_update, table).Update(schema)
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	err = _Password_Admin.Exec()
+	err = _Password_Admin.Exec("Platcont")
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
@@ -109,14 +107,14 @@ func UpdateCliente(w http.ResponseWriter, r *http.Request) {
 	data_update = append(data_update, data_request)
 
 	schema, table := tables.Clients_GetSchema()
-	_Clientes := orm.SqlExec{}
+	_Clientes := go_basic_orm.SqlExec{}
 	err = _Clientes.New(data_update, table).Update(schema)
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	err = _Clientes.Exec()
+	err = _Clientes.Exec("Platcont")
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return

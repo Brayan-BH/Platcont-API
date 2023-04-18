@@ -7,10 +7,10 @@ import (
 
 	"platcont/src/controller"
 	"platcont/src/database/models/tables"
-	"platcont/src/database/orm"
 	"platcont/src/libraries/library"
 	"platcont/src/middleware"
 
+	"github.com/deybin/go_basic_orm"
 	"github.com/gorilla/mux"
 )
 
@@ -42,14 +42,14 @@ func insertProduct(w http.ResponseWriter, r *http.Request) {
 	data_insert = append(data_insert, data_request)
 
 	schema, table := tables.Clientproducts_GetSchema()
-	_Clientes_Products := orm.SqlExec{}
+	_Clientes_Products := go_basic_orm.SqlExec{}
 	err = _Clientes_Products.New(data_insert, table).Insert(schema)
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	err = _Clientes_Products.Exec()
+	err = _Clientes_Products.Exec("Platcont")
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		// controller.ErrorsWaning(w, errors.New("Error al Registrar producto"))
@@ -82,14 +82,14 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 	data_update = append(data_update, data_request)
 
 	schema, table := tables.Clientproducts_GetSchema()
-	_Client_Products := orm.SqlExec{}
+	_Client_Products := go_basic_orm.SqlExec{}
 	err = _Client_Products.New(data_update, table).Update(schema)
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	err = _Client_Products.Exec()
+	err = _Client_Products.Exec("Platcont")
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
@@ -108,8 +108,8 @@ func ClientProducts(w http.ResponseWriter, r *http.Request) {
 
 	id_clipd := library.GetSession_key(sessionID, "id_user")
 
-	data_client_product := orm.NewQuerys("clientproducts").Select("data_base,date_facture,host,id_clie,id_clipd,modulos, multi,users").Where("id_clie", "=", id_clipd).Exec().All()
-	// data_client_product := orm.NewQuerys("clientproducts as cp").Select("cp.*,l_orga").InnerJoin("clients as c", "cp.id_clie = c.id_clie").Where("id_clipd", "=", id_clipd).Exec().All()
+	data_client_product, _ := new(go_basic_orm.Querys).NewQuerys("clientproducts").Select("data_base,date_facture,host,id_clie,id_clipd,modulos, multi,users").Where("id_clie", "=", id_clipd).Exec(go_basic_orm.Config_Query{Cloud: true}).All()
+
 	if len(data_client_product) <= 0 {
 		response.Msg = "Producto no encontrado"
 		response.StatusCode = 300

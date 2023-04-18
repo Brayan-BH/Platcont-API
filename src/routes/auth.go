@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"platcont/src/controller"
 	"platcont/src/database/models/tables"
-	"platcont/src/database/orm"
 	"platcont/src/libraries/library"
 	"platcont/src/middleware"
 
+	"github.com/deybin/go_basic_orm"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -71,7 +71,8 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	json.Unmarshal(req_body, &body)
 
-	dataUser := orm.NewQuerys("users").Select().Where("email", "=", body["email"]).Exec().One()
+	dataUser, _ := new(go_basic_orm.Querys).NewQuerys("users").Select().Where("email", "=", body["email"]).Exec(go_basic_orm.Config_Query{Cloud: true}).One()
+
 	if len(dataUser) <= 0 {
 		response.Msg = "Usuario y Contraseña Incorrecto"
 		response.StatusCode = 300
@@ -119,14 +120,14 @@ func registerFirst(w http.ResponseWriter, r *http.Request) {
 	data_insert = append(data_insert, data_request)
 
 	schema, table := tables.Users_GetSchema()
-	clientes := orm.SqlExec{}
+	clientes := go_basic_orm.SqlExec{}
 	err = clientes.New(data_insert, table).Insert(schema)
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	err = clientes.Exec()
+	err = clientes.Exec("Platcont")
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
@@ -159,14 +160,14 @@ func registerSecond(w http.ResponseWriter, r *http.Request) {
 	data_insert = append(data_insert, data_request)
 
 	schema, table := tables.Clients_GetSchema()
-	clientes := orm.SqlExec{}
+	clientes := go_basic_orm.SqlExec{}
 	err = clientes.New(data_insert, table).Insert(schema)
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return
 	}
 
-	err = clientes.Exec()
+	err = clientes.Exec("Platcont")
 	if err != nil {
 		controller.ErrorsWaning(w, err)
 		return

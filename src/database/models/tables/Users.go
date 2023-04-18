@@ -1,56 +1,50 @@
 package tables
 
 import (
-	"platcont/src/database/models"
-
+	"github.com/deybin/go_basic_orm"
 	"github.com/google/uuid"
 )
 
-func Users_GetSchema() ([]models.Base, string) {
-	var users []models.Base
+func Users_GetSchema() ([]go_basic_orm.Model, string) {
+	var users []go_basic_orm.Model
 	tableName := "users"
-	users = append(users, models.Base{ //id_user
+	users = append(users, go_basic_orm.Model{ //id_user
 		Name:        "id_user",
 		Description: "id_user",
 		Required:    true,
 		Important:   true,
 		Default:     uuid.New().String(),
 		Type:        "string",
-		Strings: models.Strings{
-			Expr: *models.Null(),
-		},
+		Strings:     go_basic_orm.Strings{},
 	})
-	users = append(users, models.Base{ //email
+	users = append(users, go_basic_orm.Model{ //email
 		Name:        "email",
 		Description: "email",
 		Required:    true,
 		Update:      true,
 		Type:        "string",
-		Strings: models.Strings{
-			Expr:      *models.Null(),
+		Strings: go_basic_orm.Strings{
 			Min:       10,
 			Max:       100,
 			LowerCase: true,
 		},
 	})
-	users = append(users, models.Base{ //password
+	users = append(users, go_basic_orm.Model{ //password
 		Name:        "password",
 		Description: "password",
 		Update:      true,
 		Type:        "string",
-		Strings: models.Strings{
-			Expr:      *models.Null(),
+		Strings: go_basic_orm.Strings{
 			Encriptar: true,
 		},
 	})
-	users = append(users, models.Base{ //password_admin
+	users = append(users, go_basic_orm.Model{ //password_admin
 		Name:        "password_admin",
 		Description: "password_admin",
 		Required:    true,
 		Update:      true,
 		Type:        "string",
-		Strings: models.Strings{
-			Expr:      *models.Null(),
+		Strings: go_basic_orm.Strings{
 			Encriptar: true,
 		},
 	})
