@@ -97,11 +97,20 @@ func login(w http.ResponseWriter, r *http.Request) {
 	controller.SessionMgr.SetSessionVal(SessionID, "login", true)
 	controller.SessionMgr.SetSessionVal(SessionID, "id_user", dataUser["id_user"].(string))
 
+	datacliente, _ := new(go_basic_orm.Querys).NewQuerys("clients").Select().Where("id_clie", "=", dataUser["id_user"]).Exec(go_basic_orm.Config_Query{Cloud: true}).One()
+
+	existeDetalle := true
+
+	if len(datacliente) <= 0 {
+		existeDetalle = false
+	}
+
 	returnData := dataUser
-	delete(returnData, "id_user")
 	delete(returnData, "password_admin")
 	delete(returnData, "password")
-	response.Data["users"] = returnData
+	response.Data["cliente"] = datacliente
+	response.Data["user"] = returnData
+	response.Data["existe"] = existeDetalle
 	response.Data["cookie_token"] = SessionID
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
@@ -146,9 +155,9 @@ func registerFirst(w http.ResponseWriter, r *http.Request) {
 func registerSecond(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := controller.NewResponseManager()
-	SessionID := controller.SessionMgr.StartSession(w, r)
 
-	id_clie := library.GetSession_key(SessionID, "id_user")
+	sessionID := r.Header.Get("Access-Token")
+	id_clie := library.GetSession_key(sessionID, "id_user")
 
 	data_request, err := controller.CheckBody(w, r)
 	if err != nil {

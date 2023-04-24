@@ -10,6 +10,7 @@ func Clients_GetSchema() ([]go_basic_orm.Model, string) {
 	clients = append(clients, go_basic_orm.Model{ //id_clie
 		Name:        "id_clie",
 		Description: "id_clie",
+		Important:   true,
 		Required:    true,
 		Type:        "string",
 		Strings:     go_basic_orm.Strings{},

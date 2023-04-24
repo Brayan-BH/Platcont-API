@@ -3,6 +3,7 @@ CREATE TABLE Users (
     email varchar(100) NOT NULL,
     password varchar(200) DEFAULT '',
     password_admin varchar(200) DEFAULT '',
+    verify int DEFAULT 0,
     constraint email unique (email)
 );
 
@@ -23,10 +24,10 @@ CREATE TABLE ClientProducts (
     id_clipd varchar(36) NOT NULL PRIMARY KEY,
     host varchar(100) DEFAULT '',
     users varchar(20) DEFAULT '',
-    data_base varchar(20) DEFAULT '',
-    password varchar(100) DEFAULT '',
-    modulos varchar(50) DEFAULT '',
-    s_impo float8 NOT NULL,
+    data_base varchar(20) DEFAULT '', --platcont_demo
+    password varchar(100) DEFAULT '', 
+    modulos varchar(50) DEFAULT '', --5,2
+    s_impo float8 NOT NULL, --0
     -- 1 := general
     -- 2 := caja
     -- 4 := contabilidad

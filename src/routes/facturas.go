@@ -34,7 +34,7 @@ func AllFactura(w http.ResponseWriter, r *http.Request) {
 
 	if len(data_facturaciones) <= 0 {
 		response.Msg = "Factura no encontrado"
-		response.StatusCode = 300
+		response.StatusCode = 200
 		response.Status = "Factura no encontrado"
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
